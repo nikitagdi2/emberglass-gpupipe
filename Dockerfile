@@ -147,12 +147,16 @@ RUN chmod +x /opt/docker/*.sh
 
 # Санитарная проверка: всё, что компилировалось, должно импортироваться.
 # Ошибку сборки лучше получить здесь, чем на оплачиваемой карте.
-RUN python -c "\
-import torch, xformers, xformers.ops, nvdiffrast, trimesh, o_voxel; \
-print('torch', torch.__version__, 'cuda', torch.version.cuda); \
-print('xformers', xformers.__version__); \
-print('o_voxel OK'); \
-print('imports OK')"
+#
+# Образ собирается на машине БЕЗ GPU, поэтому здесь нельзя трогать ничего, что
+# при импорте требует активный драйвер: xformers.ops тянет автотюнеры Triton,
+# а тот падает с "0 active drivers". Такие импорты проверяются на поде
+# командой run_session.py doctor, а не на сборке.
+#
+# o_voxel/flex_gemm регистрируют автотюнеры Triton прямо при импорте, поэтому
+# их наличие проверяется find_spec — он находит модуль, не исполняя его.
+COPY docker/verify_build.py /opt/docker/verify_build.py
+RUN python /opt/docker/verify_build.py
 
 WORKDIR $COMFY
 EXPOSE 8188
