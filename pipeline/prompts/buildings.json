@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "source": "docs/game/design/gdd.md §11.3 (здания), §6 (ростер), §3.2 (кадры), §3.4 (свет)",
+    "prompt_style": "flux2-narrative",
+    "rewritten_for_flux": true,
+    "note": "Промпты §11.3 переписаны в повествовательную форму под текстовый энкодер Qwen3, семантика сохранена. Здание несёт 7 кадров: Idle 1 + Active 4 + Damaged 1 + Rubble 1 (GDD §3.3); концепт даёт только силуэт и материал, все кадры и проекцию делает Blender на орто-риге.",
+    "target_model": "FLUX.2-klein-base-9b-fp8",
+    "sampler_contract": {"cfg": 4.0, "steps": 22, "sampler": "euler", "scheduler": "simple"},
+    "reading_note": "Слова 'isometric', 'transparent background', 'game asset' читать как «дай читаемый ортогональный вид объекта без сцены», а не как заказ готового спрайта: диффузия не держит ни точную элевацию 30°, ни консистентность между кадрами (GDD §11.3)."
+  },
+
+  "shared_negative": "collage or multiple views in one image, contact sheet grid, text, caption, watermark, signature, logo, cropped or cut off, blurry, depth of field, bokeh, cinematic lighting, lens flare, volumetric god rays, ground plane, cast shadow on the ground, terrain, background scenery, sky, horizon, people, vehicles, birds, UI overlay, perspective distortion, vanishing point",
+
+  "buildings": [
+    {
+      "id": "mrc_command_yard",
+      "faction": "MRC",
+      "footprint": "4x4",
+      "frame_px": [256, 256],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 mrc_command_yard, §6.1",
+      "positive": "A military command yard of an industrial successor-state, standing alone on a flat dark grey backdrop as a modelling reference. It is a low, wide reinforced concrete bunker with heavily sloped outer walls and a flat roof. An antenna mast and a small radar dish rise from the roof deck; a broad armoured vehicle bay door is set into one face. The materials are raw grey concrete and painted gunmetal steel, mid #39434E on the metalwork with pale #5C6874 on the upward-facing concrete, thin cyan #2FD8E0 light strips along the door frame, and white stencilled markings on the walls. Pale ash dust has settled on the roof and in the wall seams. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "modern office building, glass windows, skyscraper, medieval castle, sci-fi glowing dome, parked vehicles, soldiers, fences, roads"
+    },
+    {
+      "id": "mrc_coil_plant",
+      "faction": "MRC",
+      "footprint": "2x2",
+      "frame_px": [128, 160],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 mrc_coil_plant, §6.1, §4.4 Power",
+      "positive": "A compact power plant of an industrial successor-state, standing alone on a flat dark grey backdrop as a modelling reference. A squat concrete block carries two tall ribbed transformer coils, each caged behind a steel grille, with a bank of cooling fins along one side. Contained cyan electrical arcs #2FD8E0 flicker strictly inside the cages and nowhere else. The materials are grey concrete and matte gunmetal #39434E, with white warning stencils near the base. Ash dust films the flat surfaces. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "huge nuclear cooling tower, wind turbine, solar panels, lightning bolts outside the cages, glowing dome, power lines, pylons"
+    },
+    {
+      "id": "mrc_refinery",
+      "faction": "MRC",
+      "footprint": "3x3",
+      "frame_px": [192, 224],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 mrc_refinery, §6.1, §4.3",
+      "positive": "An ore refinery of an industrial successor-state, standing alone on a flat dark grey backdrop as a modelling reference. It is an industrial hall with a wide intake ramp climbing one flank, a large smelter window glowing warm amber #FFC24A set into the front wall, twin exhaust stacks rising at the rear, and external pipework running along the sides. Built from grey concrete and welded gunmetal plate, mid #39434E with pale #5C6874 on the upper surfaces, cyan #2FD8E0 marker lights beside the intake, and white stencilled markings. Ash and pale glass dust cake the ramp and lower walls. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "sprawling oil refinery, huge chemical plant, glowing lava pool, thick smoke filling the frame, cranes, storage tank farm"
+    },
+    {
+      "id": "mrc_barracks",
+      "faction": "MRC",
+      "footprint": "3x2",
+      "frame_px": [192, 224],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 mrc_barracks, §6.1",
+      "positive": "An infantry barracks of an industrial successor-state, standing alone on a flat dark grey backdrop as a modelling reference. A low concrete block with a single heavy reinforced door, a sandbag emplacement beside the entrance, and drill-yard markings painted on the flat roof. Grey concrete and matte gunmetal #39434E, a cyan #2FD8E0 lamp above the door, a large white stencilled unit number on the wall. Ash dust in the seams and on the sandbags. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "wooden hut, tent, medieval building, windows with curtains, chimney smoke, people, laundry lines"
+    },
+    {
+      "id": "mrc_pillbox",
+      "faction": "MRC",
+      "footprint": "1x1",
+      "frame_px": [64, 96],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 mrc_pillbox, §6.1",
+      "positive": "A small concrete pillbox turret of an industrial successor-state, standing alone on a flat dark grey backdrop as a modelling reference. A squat hexagonal bunker with sloped walls and a single narrow gun slit holding an automatic weapon, ringed at the base by stacked sandbags. Grey concrete #5C6874 with matte gunmetal fittings and a small cyan #2FD8E0 optic dot beside the slit. Ash dust on the upper faces. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "tall tower, castle turret, glowing energy weapon, sci-fi sleek styling, radar dish, large cannon"
+    },
+
+    {
+      "id": "kln_hearth_crawler",
+      "faction": "KLN",
+      "footprint": "4x4",
+      "frame_px": [256, 256],
+      "frames": 7,
+      "extra_clips": "Pack 6 / Unpack 6 — переезд штаба это реальная механика (GDD §2.4), не декор",
+      "origin": "gdd",
+      "gdd_ref": "§11.3 kln_hearth_crawler, §6.2",
+      "positive": "A mobile foundry headquarters of an industrial fire-cult, standing alone on a flat dark grey backdrop as a modelling reference. A huge riveted furnace body sits on a massive tracked chassis, leaning slightly forward. A tall chimney stack rises from the back, its mouth lit by a dull ember glow #FF4A14. Bone-white cloth banners #D9CBA8 hang from the frame and hazard yellow #E8B21F warning stripes run along the track guards. The plating is patchwork rust, dark #3A1F14 in the recesses and mid #7A3B1C across the panels, streaked with soot rising from the vents. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "steampunk airship, fantasy forge with anvil, dragons, glowing lava river, people, wagons, smoke filling the frame"
+    },
+    {
+      "id": "kln_bunkhouse",
+      "faction": "KLN",
+      "footprint": "3x2",
+      "frame_px": [192, 224],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 kln_bunkhouse, §6.2",
+      "positive": "A scavenger bunkhouse of an industrial fire-cult, standing alone on a flat dark grey backdrop as a modelling reference. A long shed built from riveted scrap plates under a taut bone-white canvas roof, with a crooked stove pipe letting out a thin wisp of smoke and strips of cloth hanging along one wall. The plating is rust, mid #7A3B1C with lighter #B0632C on worn edges, canvas #D9CBA8, and a hazard yellow #E8B21F stripe beside the doorway. Soot stains the pipe and the roof edge. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "cosy wooden cabin, camping tent, medieval inn, lit windows, people, animals, garden"
+    },
+    {
+      "id": "kln_refinery",
+      "faction": "KLN",
+      "footprint": "3x3",
+      "frame_px": [192, 224],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 kln_refinery, §6.2",
+      "positive": "A scrap ore smeltery of an industrial fire-cult, standing alone on a flat dark grey backdrop as a modelling reference. A patchwork riveted hall opens at the top around a crucible glowing warm amber #FFC24A, fed by a tilted intake chute on one flank. Two crooked chimneys lean out of the roofline, throwing off small ember sparks #FF4A14. The plating is rust, dark #3A1F14 in the recesses and mid #7A3B1C across the panels, with bone-white canvas #D9CBA8 lashed along the chute and soot streaking upward from every vent. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "fantasy forge, magic furnace, lava pool, glowing runes, people, dragons, smoke filling the frame"
+    },
+    {
+      "id": "kln_sputter_nest",
+      "faction": "KLN",
+      "footprint": "1x1",
+      "frame_px": [64, 96],
+      "frames": 7,
+      "origin": "gdd",
+      "gdd_ref": "§11.3 kln_sputter_nest, §6.2",
+      "positive": "A small scrap flame turret nest of an industrial fire-cult, standing alone on a flat dark grey backdrop as a modelling reference. A low heap of riveted plates shelters a short flame nozzle on a simple swivel, with a battered fuel drum strapped alongside and a feed hose running between them. The plating is rust #7A3B1C with lighter #B0632C on worn edges, a hazard yellow #E8B21F stripe across the front plate, and a single small pilot flame #FF4A14 at the nozzle tip. Soot marks the nozzle and the plates above it. Viewed orthographically from a three-quarter angle above, a single object centred in frame, no ground, no cast shadow, even neutral lighting from the upper left.",
+      "negative": "tall tower, flames filling the frame, magic brazier, glowing dome, campfire, people"
+    }
+  ]
+}

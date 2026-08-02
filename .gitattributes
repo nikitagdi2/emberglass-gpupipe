@@ -1,0 +1,10 @@
+# Всё, что исполняется внутри Linux-контейнера, обязано остаться с LF.
+# При клоне на Windows autocrlf иначе превратит их в CRLF, и start.sh
+# упадёт в контейнере с "bad interpreter: no such file or directory".
+*.sh        text eol=lf
+*.py        text eol=lf
+Dockerfile  text eol=lf
+Dockerfile.* text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.md        text eol=lf

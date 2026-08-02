@@ -1,0 +1,13 @@
+# локальные вспомогательные скрипты сборки
+_*.sh
+Dockerfile.probe
+
+# выходные данные сессий
+out/
+output/
+*.glb
+*.log
+
+__pycache__/
+*.pyc
+.venv/
