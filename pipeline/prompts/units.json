@@ -19,27 +19,39 @@
       "эмиссия — точечная, не более 6% пикселей юнита (GDD §3.4)"
     ]
   },
-
   "shared_negative": "collage or multiple views in one image, contact sheet grid, turntable strip, text, caption, watermark, signature, logo, cropped or cut off, blurry, depth of field, bokeh, motion blur, cinematic lighting, lens flare, volumetric god rays, glowing aura, ground plane, cast shadow on the ground, terrain, background scenery, sky, horizon, bystanders, arrows, measurement lines, UI overlay, perspective distortion, vanishing point",
-
   "units": [
     {
       "id": "mrc_lineman",
       "faction": "MRC",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 mrc_lineman, §5.3 Линейный",
       "positive": "A single line infantryman of an industrial successor-state army, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. He wears bulky sealed armour of dark blue-grey painted steel, its plates beveled and overlapping, with distinct hexagonal shoulder guards. A full-face gasmask helmet covers his head, broken only by a narrow horizontal cyan optic slit that glows faintly. He carries a compact bullpup rifle held low across the body. The armour is finished in matte gunmetal, dark #1F262E in the recesses, mid #39434E across the main plates, pale #5C6874 on the upward-facing surfaces, with a cool cyan #2FD8E0 marking on the shoulder and small white stencilled unit numbers. Fine pale ash dust has settled in the seams and along the boots. Lighting is even and neutral, a soft key from the upper left, no drama and no rim glow. Grim, utilitarian, entirely functional. Orthographic projection, flat on, no perspective.",
-      "negative": "heroic pose, cape, cloak, glowing sword, fantasy armour, samurai, medieval knight, spikes, skulls, exposed skin, bare face, female pinup, dynamic running pose, firing, muzzle flash, backpack antenna forest"
+      "negative": "heroic pose, cape, cloak, glowing sword, fantasy armour, samurai, medieval knight, spikes, skulls, exposed skin, bare face, female pinup, dynamic running pose, firing, muzzle flash, backpack antenna forest",
+      "positive_gdd": "character concept sheet, single soldier of an industrial successor-state army, three-quarter front view plus side view, bulky sealed grey-blue armour with hexagonal shoulder plates and beveled chest plate, full-face gasmask helmet with cyan optic slit, compact bullpup rifle, gunmetal palette #39434E #5C6874 with cyan accent #2FD8E0 and white stencil markings, ash-dusted, grim utilitarian, matte painted metal, neutral studio lighting from top-left, plain dark grey background, game asset concept, orthographic, no perspective",
+      "negative_gdd": "heroic pose, cape, glowing sword, fantasy armour, samurai, medieval, spikes, skulls, exposed skin, female pinup, dynamic action pose, muzzle flash"
     },
     {
       "id": "mrc_sapper",
       "faction": "MRC",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "authored",
       "gdd_ref": "§5.3 Сапёр — инженер, ремонт 12 HP/с, захват; силуэт и палитра §2.2",
       "positive": "A single combat engineer of an industrial successor-state army, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. His sealed armour is lighter and less bulky than a line trooper's, still plated blue-grey steel with hexagonal shoulder guards, cut back at the arms so he can work. A full-face gasmask helmet with a narrow cyan optic slit covers his head. Across his chest runs a heavy tool harness: a stubby welding torch clipped at the hip, a cable spool on the back, pouches of fasteners. He carries no rifle. The finish is matte gunmetal, dark #1F262E in the recesses, mid #39434E on the plates, pale #5C6874 on the upper surfaces, with a cyan #2FD8E0 band on the shoulder and small white stencilled markings. Ash dust has settled into the seams. Lighting is even and neutral from the upper left, no drama. Orthographic projection, no perspective.",
@@ -49,8 +61,14 @@
       "id": "mrc_slugger",
       "faction": "MRC",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "authored",
       "gdd_ref": "§5.3 Молот — пехотный АТ, сплэш r=48, урон Blast; силуэт и палитра §2.2",
       "positive": "A single anti-tank infantryman of an industrial successor-state army, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. He wears the same bulky sealed blue-grey plate armour as the line infantry, with hexagonal shoulder guards, but the right shoulder carries an extra thick recoil pad. A full-face gasmask helmet with a narrow cyan optic slit covers his head. Over that shoulder rests a short, fat recoilless launcher tube, carried at rest and not aimed; a spare rocket tube is strapped across his back. The finish is matte gunmetal, dark #1F262E in the recesses, mid #39434E on the plates, pale #5C6874 on the upper surfaces, with a cyan #2FD8E0 shoulder marking and white stencilled numbers. Ash dust sits in the seams. Even neutral lighting from the upper left. Orthographic projection, no perspective.",
@@ -60,8 +78,14 @@
       "id": "mrc_marksman",
       "faction": "MRC",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "authored",
       "gdd_ref": "§5.3 Егерь — дальний анти-пехотный (T3), дальность 420; силуэт и палитра §2.2",
       "positive": "A single long-range marksman of an industrial successor-state army, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. His sealed blue-grey armour is trimmer than the line infantry's, keeping the hexagonal shoulder guards but slimmer at the torso and legs. His full-face gasmask helmet carries a wider cyan optic band across the eyes and a small rangefinder pod mounted at the temple. He holds a long heavy anti-materiel rifle vertically at rest, its bipod folded flat against the barrel. The finish is matte gunmetal, dark #1F262E in the recesses, mid #39434E on the plates, pale #5C6874 on the upper surfaces, with a cyan #2FD8E0 shoulder marking and white stencilled numbers. Ash dust in the seams. Even neutral lighting from the upper left. Orthographic projection, no perspective.",
@@ -71,64 +95,109 @@
       "id": "mrc_ridge",
       "faction": "MRC",
       "class": "light_vehicle",
-      "frame_px": [64, 64],
-      "sheet_px": [512, 512],
+      "frame_px": [
+        64,
+        64
+      ],
+      "sheet_px": [
+        512,
+        512
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 mrc_ridge, §5.3 Гребень",
       "positive": "A light tracked armoured personnel carrier of an industrial successor-state army, presented alone on a flat dark grey backdrop as a modelling reference. The hull is boxy and deliberately low, riding on narrow tracks, its flanks made of flat welded plates with no exposed mechanics. A hinged troop hatch folds down at the rear. A small remote machine-gun cupola sits forward on the roof, fixed straight ahead rather than turned. The paint is matte industrial gunmetal, mid #39434E across the hull with pale #5C6874 catching the upper surfaces, a cyan #2FD8E0 optic block beside the cupola, and small white stencilled unit numbers on the flank. Pale ash dust films the lower hull and running gear. Viewed orthographically from a three-quarter angle slightly above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no shadow.",
-      "negative": "large road wheels, civilian truck, jeep, pickup, glowing panels, chrome, sleek sci-fi, hover, turret rotated sideways, perspective, vanishing point"
+      "negative": "large road wheels, civilian truck, jeep, pickup, glowing panels, chrome, sleek sci-fi, hover, turret rotated sideways, perspective, vanishing point",
+      "positive_gdd": "vehicle concept sheet, light tracked armoured personnel carrier, boxy low hull with rear troop hatch, small remote machine-gun cupola fixed forward, gunmetal #39434E with cyan accent #2FD8E0, white stencils, ash weathering, orthographic three-quarter top-down 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "wheels large, truck civilian, jeep, glowing, chrome, perspective"
     },
     {
       "id": "mrc_anvil",
       "faction": "MRC",
       "class": "heavy_vehicle",
-      "frame_px": [96, 96],
-      "sheet_px": [768, 768],
+      "frame_px": [
+        96,
+        96
+      ],
+      "sheet_px": [
+        768,
+        768
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 mrc_anvil, §5.3 Наковальня",
       "positive": "A heavy tracked main battle tank of an industrial successor-state army, presented alone on a flat dark grey backdrop as a modelling reference. The silhouette is emphatically low and wide, riding on broad tracks that carry most of its visual mass. Its armour is built from sharply sloped welded plates, smooth and sealed, with no exposed mechanics anywhere. A hexagonal turret sits centrally, separated from the hull by a clean panel gap, mounting a single short heavy cannon locked facing forward. The paint is uniform matte industrial gunmetal, deep #1F262E in the shadowed recesses, mid #39434E across the main plates, pale #5C6874 on the upward-facing surfaces, with a small cyan #2FD8E0 optic block on the turret cheek and a white stencilled unit number on the hull side. Fine pale ash dust has settled along the horizontal surfaces and the track guards. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow.",
-      "negative": "sci-fi hover tank, glowing energy weapon, futuristic sleek styling, chrome, mirror finish, enormous long cannon barrel, spikes, camouflage pattern, turret rotated sideways, perspective, vanishing point"
+      "negative": "sci-fi hover tank, glowing energy weapon, futuristic sleek styling, chrome, mirror finish, enormous long cannon barrel, spikes, camouflage pattern, turret rotated sideways, perspective, vanishing point",
+      "positive_gdd": "vehicle concept sheet, heavy tracked main battle tank of an industrial successor-state, extremely low and wide silhouette, wide tracks, sharply sloped welded armour plates, hexagonal turret with single short heavy cannon fixed forward, sealed hull no exposed mechanics, gunmetal palette #1F262E #39434E #5C6874, cyan optic accent #2FD8E0, white stencil unit number, ash dust weathering, matte industrial paint, orthographic three-quarter top-down view at 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "sci-fi hover tank, glowing energy weapon, futuristic sleek, chrome, huge cannon barrel, spikes, camo pattern, perspective"
     },
     {
       "id": "mrc_bastion",
       "faction": "MRC",
       "class": "heavy_vehicle",
-      "frame_px": [96, 96],
-      "sheet_px": [768, 768],
+      "frame_px": [
+        96,
+        96
+      ],
+      "sheet_px": [
+        768,
+        768
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 mrc_bastion, §5.3 Бастион (развёртка 1.5 с)",
       "positive": "A tracked siege gun of an industrial successor-state army, presented alone on a flat dark grey backdrop as a modelling reference. A long heavy barrel lies along the length of a low, wide tracked chassis, held in a squat cradle rather than a turret. Two hydraulic ground spades are folded down at the rear, braced as if just deployed. A rack of large shells is stowed along one flank behind armoured louvres. The plating is sloped and sealed, matte industrial paint, deep #1F262E in the recesses and mid #39434E across the main surfaces, with small cyan #2FD8E0 optic marks and white stencilled numbers. Pale ash dust films the tracks and the lower hull. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow.",
-      "negative": "railgun, energy weapon, glowing barrel, missile launcher, rocket pods, sci-fi sleek, chrome, firing, muzzle blast, smoke, perspective, vanishing point"
+      "negative": "railgun, energy weapon, glowing barrel, missile launcher, rocket pods, sci-fi sleek, chrome, firing, muzzle blast, smoke, perspective, vanishing point",
+      "positive_gdd": "vehicle concept sheet, tracked siege gun, long heavy barrel over low chassis, hydraulic ground spades deployed at rear, ammunition rack, gunmetal #1F262E #39434E, cyan accents, white stencils, ash weathering, orthographic three-quarter top-down 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "railgun energy, glowing barrel, missile launcher, sci-fi, perspective"
     },
     {
       "id": "mrc_drover",
       "faction": "MRC",
       "class": "harvester",
-      "frame_px": [96, 96],
-      "sheet_px": [768, 576],
+      "frame_px": [
+        96,
+        96
+      ],
+      "sheet_px": [
+        768,
+        576
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 mrc_drover, §5.3 Погонщик",
       "positive": "A heavy tracked ore harvester of an industrial successor-state army, presented alone on a flat dark grey backdrop as a modelling reference. A huge horizontal cutting drum studded with blunt tungsten teeth dominates the front, slung low between the track units. Behind it rises a tall boxy ore hopper with reinforced ribs and a hinged top, flanked by two short exhaust stacks. The machine is broad, heavy and sealed, built from flat welded plate. The paint is matte gunmetal, mid #39434E across the body with pale #5C6874 on the upper surfaces, a cyan #2FD8E0 marker light on the cab, and amber warning stripes along the hopper edge. Heavy pale ash and powdered glass dust cake the drum, the tracks and the lower hull. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow.",
-      "negative": "civilian dump truck, excavator arm, crane boom, bulldozer blade, glowing, sleek sci-fi, chrome, driver visible, ore pile on the ground, perspective"
+      "negative": "civilian dump truck, excavator arm, crane boom, bulldozer blade, glowing, sleek sci-fi, chrome, driver visible, ore pile on the ground, perspective",
+      "positive_gdd": "vehicle concept sheet, heavy tracked ore harvester, huge front cutting drum with tungsten teeth, tall boxy ore hopper on back, exhaust stacks, gunmetal #39434E #5C6874 with cyan accent, amber warning stripes, heavy ash and glass dust weathering, orthographic three-quarter top-down 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "dump truck civilian, excavator arm, crane, glowing, sleek sci-fi"
     },
-
     {
       "id": "kln_scrapper",
       "faction": "KLN",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 kln_scrapper, §5.4 Ветошник",
       "positive": "A single scavenger militia fighter of an industrial fire-cult, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. The silhouette is tall, lean and leaning forward, as if permanently walking into wind. His armour is patchwork rust-brown scrap plate, riveted and mismatched, worn over layers of bone-white cloth wrapping at the arms and waist. A welding-mask faceplate with a single narrow slit hides the face. A few small pipes and a tiny burner canister are strapped to his back, exposed rather than housed. He carries a crude scrap rifle assembled from salvage. The palette is rust, dark #3A1F14 in the recesses, mid #7A3B1C across the plate, lighter #B0632C on worn edges, with bone #D9CBA8 cloth and a hazard yellow #E8B21F strap. Soot stains the cloth and the lower legs. Even neutral lighting from the upper left. Orthographic projection, no perspective.",
-      "negative": "heroic pose, tribal warpaint, bare painted face, fantasy barbarian, skulls, chains, exposed skin, female pinup, glowing eyes, firing, muzzle flash, large flames"
+      "negative": "heroic pose, tribal warpaint, bare painted face, fantasy barbarian, skulls, chains, exposed skin, female pinup, glowing eyes, firing, muzzle flash, large flames",
+      "positive_gdd": "character concept sheet, single scavenger militia fighter of an industrial fire-cult, tall lean forward-leaning silhouette, patchwork rust-brown scrap armour over bone-white cloth wrappings, welding-mask style faceplate with narrow slit, exposed small pipes and a tiny burner on the back, crude scrap rifle, palette rust #7A3B1C #B0632C with bone #D9CBA8 and hazard yellow #E8B21F, soot stained, grim utilitarian, matte weathered metal, neutral top-left lighting, plain dark grey background, game asset concept, orthographic",
+      "negative_gdd": "heroic pose, tribal warpaint face, fantasy barbarian, skulls, chains, exposed skin, female pinup, glowing eyes, muzzle flash"
     },
     {
       "id": "kln_stoker",
       "faction": "KLN",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "authored",
       "gdd_ref": "§5.4 Кочегар — инженер, ремонт 10 HP/с, поджог зданий; силуэт и палитра §2.3",
       "positive": "A single engineer stoker of an industrial fire-cult, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. The silhouette is tall, lean and leaning forward. He wears patchwork rust-brown scrap plate over bone-white cloth wrappings, with a welding-mask faceplate slit across the eyes and heavy insulated gauntlets to the elbow. A tool belt carries a riveting hammer and a long pipe wrench; a small pressurised burner canister rides on his hip, its single pilot flame the only warm light on the figure. He carries no rifle. The palette is rust, dark #3A1F14 in the recesses, mid #7A3B1C on the plate, lighter #B0632C on worn edges, bone #D9CBA8 cloth, hazard yellow #E8B21F on the belt, and a small ember #FF4A14 at the pilot flame alone. Soot marks the gauntlets and apron. Even neutral lighting from the upper left. Orthographic projection, no perspective.",
@@ -138,19 +207,33 @@
       "id": "kln_torchbearer",
       "faction": "KLN",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 kln_torchbearer, §5.4 Факельщик",
       "positive": "A single flamethrower trooper of an industrial fire-cult, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. The silhouette is tall and forward-leaning, weighed down at the back by a bulky fuel tank fitted with pressure gauges and a small pilot flame at the nozzle head. Over his body hangs a heavy insulated apron of layered scrap and cloth; a welding faceplate with a narrow slit covers the face. He carries a short, stubby flame projector at rest, not firing. The palette is rust, mid #7A3B1C across the plate and lighter #B0632C on worn edges, with bone #D9CBA8 cloth and hazard yellow #E8B21F straps. The only warm light in the image is a small ember #FF4A14 at the pilot flame. Soot streaks the apron and tank. Even neutral lighting from the upper left. Orthographic projection, no perspective.",
-      "negative": "huge fireball, flames filling the frame, jet of fire, glowing whole body, fantasy pyromancer, robes, magic, skulls, exposed skin, heroic pose"
+      "negative": "huge fireball, flames filling the frame, jet of fire, glowing whole body, fantasy pyromancer, robes, magic, skulls, exposed skin, heroic pose",
+      "positive_gdd": "character concept sheet, flamethrower trooper of an industrial fire-cult, backpack fuel tank with pilot flame and pressure gauges, heavy insulated apron, welding faceplate, short flame projector, rust palette #7A3B1C #B0632C, bone cloth #D9CBA8, hazard yellow straps #E8B21F, ember glow #FF4A14 only at the pilot flame, soot stained, orthographic, plain dark grey background, game asset concept",
+      "negative_gdd": "huge fireball, flames filling frame, glowing whole body, fantasy pyromancer, robes, magic"
     },
     {
       "id": "kln_arcpike",
       "faction": "KLN",
       "class": "infantry",
-      "frame_px": [48, 48],
-      "sheet_px": [768, 432],
+      "frame_px": [
+        48,
+        48
+      ],
+      "sheet_px": [
+        768,
+        432
+      ],
       "origin": "authored",
       "gdd_ref": "§5.4 Дуговик — анти-техника пехота, урон Arc; силуэт и палитра §2.3",
       "positive": "A single anti-vehicle trooper of an industrial fire-cult, shown as a clean reference study: one three-quarter front view and one side view of the same figure, side by side against a flat dark grey backdrop. The silhouette is tall, lean and forward-leaning. He wears patchwork rust-brown scrap plate over bone-white cloth wrappings, with a welding-mask faceplate slit across the eyes. A thick rubber-wrapped yoke sits across his shoulders, carrying a long two-handed electrode lance banded with heavy copper coils, held upright at rest and inert. A boxy capacitor pack with cooling fins is strapped to his back, connected by an armoured cable. The palette is rust, dark #3A1F14 in the recesses, mid #7A3B1C on the plate, lighter #B0632C on worn edges, bone #D9CBA8 cloth, hazard yellow #E8B21F on the yoke, with tiny ember #FF4A14 vents on the capacitor pack. Soot on the cloth. Even neutral lighting from the upper left. Orthographic projection, no perspective.",
@@ -160,30 +243,52 @@
       "id": "kln_skitter",
       "faction": "KLN",
       "class": "light_vehicle",
-      "frame_px": [64, 64],
-      "sheet_px": [512, 512],
+      "frame_px": [
+        64,
+        64
+      ],
+      "sheet_px": [
+        512,
+        512
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 kln_skitter, §5.4 Стрекотун",
       "positive": "A fast three-wheeled scrap raider buggy of an industrial fire-cult, presented alone on a flat dark grey backdrop as a modelling reference. Its frame is open tube and salvaged plate, one wheel forward and two oversized wheels at the rear, giving it a nose-down, forward-leaning stance. The engine sits exposed behind the driver's cage with short side exhausts. A small machine gun is mounted forward, fixed straight ahead. The finish is rust, mid #7A3B1C over the plate with lighter #B0632C on worn edges, bone-white #D9CBA8 cloth pennants tied to the frame, and hazard yellow #E8B21F stripes on the nose. Soot streaks trail back from the exhausts. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow, no driver.",
-      "negative": "sports car, modern motorcycle, visible rider, glowing neon, chrome, polished paint, headlights on, dust cloud, motion lines, perspective, vanishing point"
+      "negative": "sports car, modern motorcycle, visible rider, glowing neon, chrome, polished paint, headlights on, dust cloud, motion lines, perspective, vanishing point",
+      "positive_gdd": "vehicle concept sheet, fast three-wheeled scrap raider buggy, open frame, oversized rear wheels, exposed engine with side exhausts, small forward machine gun, rust #7A3B1C with bone cloth flags #D9CBA8 and hazard yellow #E8B21F, soot, orthographic three-quarter top-down 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "sports car, motorcycle rider visible, glowing neon, chrome, perspective"
     },
     {
       "id": "kln_stilt",
       "faction": "KLN",
       "class": "walker",
-      "frame_px": [96, 96],
-      "sheet_px": [768, 768],
+      "frame_px": [
+        96,
+        96
+      ],
+      "sheet_px": [
+        768,
+        768
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 kln_stilt, §5.4 Ходун",
       "positive": "A two-legged industrial walker of a fire-cult, presented alone on a flat dark grey backdrop as a modelling reference. Its body is a tall, narrow furnace leaning forward over two thin articulated legs that end in wide flat feet. A tall chimney stack rises from the back of the body. Two flame projector arms are mounted low on the flanks, held at rest. Pipes, rivets and patch plates cover the body surface, deliberately exposed rather than housed. The palette is rust, dark #3A1F14 in the recesses, mid #7A3B1C on the plate, lighter #B0632C on worn edges, with bone-white #D9CBA8 cloth banners hanging from the frame and hazard yellow #E8B21F warning stripes. Small ember #FF4A14 vents glow along the furnace seams, kept sparse. Heavy soot streaks run upward from the vents. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow.",
-      "negative": "anime mech, gundam, humanoid arms, hands, cockpit glass canopy, chrome, sleek styling, four legs, spider, insect legs, walking pose mid-stride, fire jets, perspective"
+      "negative": "anime mech, gundam, humanoid arms, hands, cockpit glass canopy, chrome, sleek styling, four legs, spider, insect legs, walking pose mid-stride, fire jets, perspective",
+      "positive_gdd": "vehicle concept sheet, two-legged industrial walker, tall narrow forward-leaning body like a mobile furnace on stilts, thin articulated legs with wide feet, twin flame projector arms, tall chimney stack with heat shimmer, exposed pipes and rivets, rust palette #3A1F14 #7A3B1C #B0632C, bone cloth banners #D9CBA8, hazard yellow #E8B21F, ember vents #FF4A14, heavy soot weathering, orthographic three-quarter top-down 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "mech anime, gundam, humanoid arms, cockpit glass canopy, chrome, sleek, four legs, spider, perspective"
     },
     {
       "id": "kln_bellows",
       "faction": "KLN",
       "class": "heavy_vehicle",
-      "frame_px": [96, 96],
-      "sheet_px": [768, 768],
+      "frame_px": [
+        96,
+        96
+      ],
+      "sheet_px": [
+        768,
+        768
+      ],
       "origin": "authored",
       "gdd_ref": "§5.4 Мех — мобильная мортира (T3), сплэш r=110, мин. дальность 140; силуэт и палитра §2.3",
       "positive": "A mobile scrap mortar carrier of an industrial fire-cult, presented alone on a flat dark grey backdrop as a modelling reference. Six wheels carry a riveted patchwork chassis that sits nose-down and leans forward. At the rear, a short fat mortar tube is elevated steeply, seated in a heavy braced cradle, with folding stabiliser legs stowed along the sides. A rack of stubby shells is stacked behind the cab under a cloth cover. A thin chimney rises beside the cab. The palette is rust, dark #3A1F14 in the recesses, mid #7A3B1C on the plate, lighter #B0632C on worn edges, bone-white #D9CBA8 cloth, and hazard yellow #E8B21F warning stripes around the mortar cradle, with small ember #FF4A14 vents at the engine. Heavy soot weathering. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow.",
@@ -193,12 +298,20 @@
       "id": "kln_gorger",
       "faction": "KLN",
       "class": "harvester",
-      "frame_px": [96, 96],
-      "sheet_px": [768, 576],
+      "frame_px": [
+        96,
+        96
+      ],
+      "sheet_px": [
+        768,
+        576
+      ],
       "origin": "gdd",
       "gdd_ref": "§11.2 kln_gorger, §5.4 Обжора",
       "positive": "A six-wheeled scrap ore harvester of an industrial fire-cult, presented alone on a flat dark grey backdrop as a modelling reference. A wide pair of scoop jaws hinges open at the front, low to the ground. Behind them sits an open ore basket of riveted mesh and plate, heaped rims worn smooth. A tall chimney rises at the back, its mouth blackened. The whole machine is patchwork riveted plating, no two panels quite matching. The palette is rust, mid #7A3B1C across the plate with lighter #B0632C on the worn edges, bone-white #D9CBA8 cloth lashed along the basket rail, and hazard yellow #E8B21F stripes on the jaws. Soot and pale glass dust cake the wheels and the lower body. Viewed orthographically from a three-quarter angle above, as a technical study rather than a scene. Even neutral lighting from the upper left, no ground, no cast shadow.",
-      "negative": "modern garbage truck, excavator, crane boom, sleek styling, glowing, chrome, driver visible, ore pile on the ground, dust cloud, perspective"
+      "negative": "modern garbage truck, excavator, crane boom, sleek styling, glowing, chrome, driver visible, ore pile on the ground, dust cloud, perspective",
+      "positive_gdd": "vehicle concept sheet, six-wheeled scrap ore harvester, wide front scoop jaws, open ore basket, tall smoking chimney, patchwork riveted plating, rust #7A3B1C #B0632C, bone cloth #D9CBA8, hazard yellow stripes #E8B21F, soot and glass dust weathering, orthographic three-quarter top-down 30 degree elevation, plain dark grey background, game asset concept",
+      "negative_gdd": "garbage truck modern, excavator, crane, sleek, glowing"
     }
   ]
 }

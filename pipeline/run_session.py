@@ -47,6 +47,25 @@ def select_units(data: dict, only: list[str] | None, faction: str | None,
     return units
 
 
+def resolve_prompt(entry: dict, style: str, shared_negative: str) -> tuple[str, str] | None:
+    """Промпт в запрошенном стиле; None — если такого варианта у записи нет.
+
+    Стиль `gdd` — дословный текст §11.2/§11.3, извлечённый скриптом
+    sync_gdd_prompts.py. У юнитов, дописанных нами, исходника в GDD нет,
+    поэтому в режиме сравнения они молча не участвуют — сравнивать не с чем.
+    """
+    if style == "gdd":
+        positive = entry.get("positive_gdd")
+        negative = entry.get("negative_gdd", "")
+        if not positive:
+            return None
+    else:
+        positive = entry["positive"]
+        negative = entry.get("negative", "")
+
+    return positive, ", ".join(filter(None, [negative, shared_negative]))
+
+
 def resolve_model_names(client: ComfyClient) -> dict:
     """Имена файлов моделей берём из живой схемы, а не из констант."""
     def pick(class_type: str, input_name: str, needles: list[str], role: str) -> str:
@@ -135,25 +154,34 @@ def cmd_concepts(args: argparse.Namespace) -> int:
     out_root = Path(args.out)
     shared_negative = data.get("shared_negative", "")
 
-    planned = len(units) * args.seeds
-    print(f"юнитов {len(units)} x сидов {args.seeds} = {planned} кадров")
+    styles = args.prompt_style
+    resolved = [(unit, style, resolve_prompt(unit, style, shared_negative))
+                for unit in units for style in styles]
+    skipped = [f"{u['id']}/{s}" for u, s, p in resolved if p is None]
+    work = [(u, s, p) for u, s, p in resolved if p is not None]
+
+    planned = len(work) * args.seeds
+    print(f"юнитов {len(units)} x стилей {len(styles)} x сидов {args.seeds} = {planned} кадров")
     print(f"модель: {names['diffusion']}, cfg={sampler.cfg}, steps={sampler.steps}")
+    if skipped:
+        print(f"без варианта промпта, пропущены: {', '.join(skipped)}")
 
     done = 0
-    for unit in units:
+    for unit, style, (positive, negative) in work:
         width, height = unit["sheet_px"]
-        negative = ", ".join(filter(None, [unit.get("negative", ""), shared_negative]))
 
         for seed_index in range(args.seeds):
             seed = args.seed_base + seed_index
-            dest = out_root / unit["id"] / f"{unit['id']}_s{seed}.png"
+            # Стиль в имени файла: оба варианта ложатся в одну папку и
+            # попадают на общий контактный лист рядом — так их и сравнивают.
+            dest = out_root / unit["id"] / f"{unit['id']}_{style}_s{seed}.png"
             if dest.exists() and dest.stat().st_size > 0:
                 print(f"  [skip] {dest.name}")
                 done += 1
                 continue
 
             graph = build_flux2_graph(
-                client, positive=unit["positive"], negative=negative,
+                client, positive=positive, negative=negative,
                 width=width, height=height, seed=seed, sampler=sampler,
                 diffusion_name=names["diffusion"], clip_name=names["clip"],
                 vae_name=names["vae"], filename_prefix=f"emberglass/{unit['id']}")
@@ -162,12 +190,12 @@ def cmd_concepts(args: argparse.Namespace) -> int:
             if problems:
                 raise SystemExit("граф разошёлся со схемой:\n  " + "\n  ".join(problems))
 
-            print(f"  [gen ] {unit['id']} seed={seed} {width}x{height}")
+            print(f"  [gen ] {unit['id']} [{style}] seed={seed} {width}x{height}")
             outputs = client.wait(client.submit(graph), timeout_seconds=args.timeout)
 
             images = [img for node in outputs.values() for img in node.get("images", [])]
             if not images:
-                print(f"  [WARN] {unit['id']} seed={seed}: сервер не вернул изображений")
+                print(f"  [WARN] {unit['id']} [{style}] seed={seed}: сервер не вернул изображений")
                 continue
             client.download_image(images[0], dest)
             done += 1
@@ -253,6 +281,10 @@ def main() -> int:
     concepts.add_argument("--faction", choices=["MRC", "KLN"])
     concepts.add_argument("--unit-class", dest="unit_class")
     concepts.add_argument("--timeout", type=float, default=1800.0)
+    concepts.add_argument(
+        "--prompt-style", nargs="+", choices=["flux", "gdd"], default=["flux"],
+        help="flux — переписанный под Qwen3 (по умолчанию); gdd — дословный §11.2/§11.3. "
+             "Указать оба — прогон A/B на одних сидах")
 
     sheets = sub.add_parser("sheets", help="контактные листы для отбора")
     sheets.add_argument("--columns", type=int, default=4)
