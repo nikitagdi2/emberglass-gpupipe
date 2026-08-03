@@ -22,7 +22,8 @@ jobs:
         with:
           tool-cache: true
           large-packages: true
-          docker-images: false
+          docker-images: true
+          swap-storage: false
 
       - uses: actions/checkout@v4
 
@@ -48,7 +49,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Раннер: 4 ядра, 16 ГБ. На полном списке архитектур nvcc съедает
+          # память и job умирает без сообщения прямо на сборке flex_gemm.
+          # 8.6 покрывает A40/A6000/A5000/3090, 8.9 — 4090/L40S, PTX даёт
+          # forward-совместимость с H100 через JIT.
           build-args: |
             WITH_FLASH_ATTN=${{ inputs.with_flash_attn && '1' || '0' }}
+            TORCH_ARCH_LIST=8.6;8.9+PTX
+            MAX_JOBS=2
           cache-from: type=gha
           cache-to: type=gha,mode=max

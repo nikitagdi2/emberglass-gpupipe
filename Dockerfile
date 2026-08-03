@@ -14,9 +14,21 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIPE=/opt/pipe
 
 # 8.0=A100, 8.6=A40/A6000/A5000/3090, 8.9=4090/L40S, 9.0=H100.
-# Перечислены все карты, на которых может оказаться под: сборка под одну даёт
-# "no kernel image is available for execution on the device" при смене железа.
-ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0+PTX"
+# Сборка под одну архитектуру даёт "no kernel image is available for execution
+# on the device" при смене железа, поэтому по умолчанию перечислены все.
+#
+# Каждая архитектура — это отдельный проход nvcc, то есть время и ПАМЯТЬ.
+# Бесплатный раннер GitHub (4 ядра, 16 ГБ) на полном списке умирает при сборке
+# flex_gemm, поэтому CI передаёт сюда суженный список: "8.6;8.9+PTX" покрывает
+# A40/A6000/A5000/3090/4090/L40S нативно и H100 через JIT из PTX. A100 (8.0)
+# в такой сборке не поддержан — по плану он и не используется, втрое дороже
+# без выигрыша на инференсе.
+ARG TORCH_ARCH_LIST="8.0;8.6;8.9;9.0+PTX"
+ENV TORCH_CUDA_ARCH_LIST=${TORCH_ARCH_LIST}
+
+# Параллелизм nvcc. Пусто — по числу ядер; на раннере ограничивается, иначе OOM.
+ARG MAX_JOBS=""
+ENV MAX_JOBS=${MAX_JOBS}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git wget curl ca-certificates build-essential ninja-build cmake \
@@ -75,33 +87,42 @@ RUN if [ "$WITH_FLASH_ATTN" = "1" ]; then \
 # на машине без GPU. Ревизии пинятся: без этого следующая сборка соберёт
 # другой набор версий и воспроизводимости не будет.
 # ---------------------------------------------------------------------------
+# Мелкий клон без истории: полный тянет около гигабайта, который в образе
+# не нужен ни для чего.
 ARG TRELLIS2_REF=main
-RUN git clone https://github.com/microsoft/TRELLIS.2.git $TRELLIS && \
-    cd $TRELLIS && git checkout $TRELLIS2_REF && git submodule update --init --recursive
+RUN git clone --depth 1 --branch $TRELLIS2_REF --recurse-submodules --shallow-submodules \
+      https://github.com/microsoft/TRELLIS.2.git $TRELLIS && \
+    rm -rf $TRELLIS/.git
 
 WORKDIR /tmp/extensions
 
 # Клонируем с сабмодулями: CuMesh вендорит cubvh в third_party/, и без
 # --recurse-submodules сборка падает на ninja "api_gpu.cu missing".
+# Исходники удаляются ВНУТРИ того же RUN: уборка отдельным слоём размер
+# образа не уменьшает, файлы остаются в нижележащем слое.
 ARG NVDIFFRAST_REF=v0.4.0
 RUN git clone -b $NVDIFFRAST_REF --depth 1 --recurse-submodules --shallow-submodules \
       https://github.com/NVlabs/nvdiffrast.git && \
-    pip install ./nvdiffrast --no-build-isolation
+    pip install ./nvdiffrast --no-build-isolation && \
+    rm -rf ./nvdiffrast
 
 ARG NVDIFFREC_REF=renderutils
 RUN git clone -b $NVDIFFREC_REF --depth 1 --recurse-submodules --shallow-submodules \
       https://github.com/JeffreyXiang/nvdiffrec.git && \
-    pip install ./nvdiffrec --no-build-isolation
+    pip install ./nvdiffrec --no-build-isolation && \
+    rm -rf ./nvdiffrec
 
 RUN git clone --depth 1 --recurse-submodules --shallow-submodules \
       https://github.com/JeffreyXiang/CuMesh.git && \
     test -f CuMesh/third_party/cubvh/src/api_gpu.cu || \
       (echo "CuMesh: сабмодули не подтянулись" && ls -R CuMesh/third_party | head -30 && exit 1) && \
-    pip install ./CuMesh --no-build-isolation
+    pip install ./CuMesh --no-build-isolation && \
+    rm -rf ./CuMesh
 
 RUN git clone --depth 1 --recurse-submodules --shallow-submodules \
       https://github.com/JeffreyXiang/FlexGEMM.git && \
-    pip install ./FlexGEMM --no-build-isolation
+    pip install ./FlexGEMM --no-build-isolation && \
+    rm -rf ./FlexGEMM
 
 # o-voxel живёт внутри самого репозитория TRELLIS.2, отдельного origin у него нет.
 # Путь между ревизиями переезжал, поэтому ищем каталог, а не хардкодим.
