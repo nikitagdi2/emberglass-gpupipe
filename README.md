@@ -143,8 +143,18 @@ GPU для сборки не нужен — компиляции хватает 
 
 ## 4. Под
 
-Template: образ из GHCR, Container Disk **120 GB**, Volume Disk **0**,
-HTTP-порт **8188**, переменная `HF_TOKEN`. Community Cloud, не Secure.
+Template:
+
+- **Container Image:** `ghcr.io/nikitagdi2/emberglass-gpupipe:latest`
+- **Container Disk:** 120 GB, **Volume Disk:** 0
+- **Expose HTTP Ports:** 8188
+- **Environment:** `HF_TOKEN`
+
+Community Cloud, не Secure.
+
+Образ собирает CI и пушит в GHCR — с локальной машины ничего выгружать не надо.
+Локальная сборка нужна только чтобы отладить Dockerfile или получить вариант с
+flash-attn.
 
 Ритм сессии:
 

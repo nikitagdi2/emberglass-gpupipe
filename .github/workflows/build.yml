@@ -10,6 +10,12 @@ on:
         type: boolean
         default: false
 
+# Два прогона на одной ветке гонятся за тегом latest, и запушить его последним
+# может сборка СТАРОГО коммита — тогда latest молча откатывается назад.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   docker:
     runs-on: ubuntu-latest
