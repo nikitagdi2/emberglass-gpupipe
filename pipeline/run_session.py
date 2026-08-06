@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from comfy import ComfyClient, ComfyError, SamplerSettings, build_flux2_graph  # noqa: E402
+from comfy_client import ComfyClient, ComfyError, SamplerSettings, build_flux2_graph  # noqa: E402
 from sheets import contact_sheet  # noqa: E402
 
 

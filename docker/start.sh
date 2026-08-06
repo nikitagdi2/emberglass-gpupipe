@@ -2,9 +2,14 @@
 # Точка входа пода: тянем веса, поднимаем ComfyUI.
 set -euo pipefail
 
-export HF_HUB_ENABLE_HF_TRANSFER=1
+# hf_transfer больше не используется, huggingface_hub ругается на него как на
+# устаревший и просит взамен ускорение через Xet.
+export HF_XET_HIGH_PERFORMANCE=1
 export HF_HOME=${HF_HOME:-/workspace/hf}
-export PYTHONPATH="${PIPE:-/opt/pipe}:${PYTHONPATH:-}"
+
+# PYTHONPATH сюда НЕ добавляем. Наши модули лежат в /opt/pipe, и попадание
+# этого каталога на общий путь импорта затеняет одноимённые пакеты ComfyUI.
+# run_session.py сам подкладывает свой каталог в sys.path, ему это не нужно.
 
 mkdir -p /workspace/models /workspace/inputs /workspace/output /workspace/hf
 
@@ -55,4 +60,19 @@ if [ "$WEIGHTS_OK" != "1" ]; then
 fi
 
 echo "=== ComfyUI :8188 ==="
-exec python "${COMFY:-/opt/ComfyUI}/main.py" --listen 0.0.0.0 --port 8188 "$@"
+# Без exec: если ComfyUI упадёт, контейнер не должен умирать вместе с ним.
+# Иначе RunPod перезапускает его по кругу, sshd умирает вместе с контейнером,
+# и подключиться для диагностики некуда — карта при этом тарифицируется.
+cd "${COMFY:-/opt/ComfyUI}"
+python "${COMFY:-/opt/ComfyUI}/main.py" --listen 0.0.0.0 --port 8188 "$@" || COMFY_EXIT=$?
+
+echo
+echo "!!! ComfyUI завершился с кодом ${COMFY_EXIT:-0}."
+echo "!!! Контейнер оставлен живым намеренно: sshd работает, можно зайти и"
+echo "!!! посмотреть, вместо бесконечного перезапуска вслепую."
+echo "!!!   python /opt/pipe/run_session.py doctor"
+echo "!!! Когда закончишь — TERMINATE пода, карта тарифицируется."
+echo
+
+# Держим контейнер живым ради sshd.
+tail -f /dev/null
