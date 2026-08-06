@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       git wget curl ca-certificates build-essential ninja-build cmake \
       python3.10 python3.10-dev python3.10-venv python3-pip \
       libgl1 libglib2.0-0 libegl1 libxrender1 libsm6 libxext6 \
-      ffmpeg rsync openssh-client jq \
+      ffmpeg rsync openssh-client openssh-server jq \
     && rm -rf /var/lib/apt/lists/*
 
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python && \

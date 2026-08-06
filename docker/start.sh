@@ -8,6 +8,28 @@ export PYTHONPATH="${PIPE:-/opt/pipe}:${PYTHONPATH:-}"
 
 mkdir -p /workspace/models /workspace/inputs /workspace/output /workspace/hf
 
+# RunPod прокидывает публичный ключ аккаунта переменной PUBLIC_KEY и ожидает,
+# что образ сам поднимет sshd. Без него ни `ssh`, ни `rsync` до пода не дойдут:
+# слушать некому, а результаты сессии забирать чем-то надо.
+setup_ssh() {
+  mkdir -p /root/.ssh && chmod 700 /root/.ssh
+
+  if [ -n "${PUBLIC_KEY:-}" ]; then
+    echo "$PUBLIC_KEY" >> /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+  else
+    echo "PUBLIC_KEY не задан: sshd поднимется, но пускать будет некого."
+    echo "  Ключ добавляется в RunPod -> Settings -> SSH Public Keys."
+  fi
+
+  ssh-keygen -A >/dev/null 2>&1 || true   # хостовые ключи, если их ещё нет
+  mkdir -p /run/sshd
+  /usr/sbin/sshd || echo "sshd не стартовал; передача файлов только через runpodctl"
+}
+
+echo "=== SSH ==="
+setup_ssh
+
 echo "=== GPU ==="
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader || echo "nvidia-smi недоступен"
 
