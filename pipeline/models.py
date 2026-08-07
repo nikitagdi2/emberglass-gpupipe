@@ -128,10 +128,13 @@ PRESETS: dict[str, ModelPreset] = {
         ],
         steps=20, cfg=3.5,
         diffusion_hint="qwen_image_fp8", clip_hint="qwen_2.5_vl_7b", vae_hint="qwen_image_vae",
-        notes="Полноразмерная Qwen-Image. Варианта nvidia Qwen-Image-Flash в "
-              "формате ComfyUI не существует, он опубликован только как "
-              "diffusers; ближайший быстрый аналог — qwen_image_distill в том "
-              "же репозитории.",
+        notes="Полноразмерная Qwen-Image. ТРЕБУЕТ ЧИСТОГО ПРОЦЕССА ComfyUI: "
+              "поверх уже загруженных klein и krea2 она валит его нехваткой "
+              "VRAM без внятного сообщения (снаружи виден только Connection "
+              "refused посреди батча). На свежем процессе занимает 28 ГБ из 46 "
+              "на A40. Варианта nvidia Qwen-Image-Flash в формате ComfyUI не "
+              "существует, он опубликован только как diffusers; ближайший "
+              "быстрый аналог — qwen-image-distill.",
     ),
 
     "qwen-image-distill": ModelPreset(
