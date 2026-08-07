@@ -181,6 +181,18 @@ RUN git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager.git && \
 
 RUN pip install hf_transfer "huggingface_hub[cli]" requests pillow numpy trimesh
 
+# runpodctl — запасной канал выгрузки: гоняет файлы через релей RunPod по
+# одноразовому коду, без SSH и без проброса портов. Нужен именно тогда, когда
+# основной канал недоступен: прокси RunPod не поддерживает scp/rsync, а прямой
+# TCP требует Expose TCP Ports 22, который у уже созданного пода не добавить.
+# Плюс iproute2 — без ss/netstat в образе нечем проверить, слушает ли sshd.
+RUN apt-get update && apt-get install -y --no-install-recommends iproute2 && \
+    rm -rf /var/lib/apt/lists/* && \
+    wget -qO /usr/local/bin/runpodctl \
+      https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64 && \
+    chmod +x /usr/local/bin/runpodctl && \
+    runpodctl version || echo "runpodctl не отвечает на version, но установлен"
+
 COPY docker/ /opt/docker/
 COPY pipeline/ $PIPE/
 RUN chmod +x /opt/docker/*.sh

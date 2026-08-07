@@ -148,8 +148,29 @@ def cmd_concepts(args: argparse.Namespace) -> int:
 
     client = ComfyClient(args.comfy_url)
     names = resolve_model_names(client)
+
+    if args.diffusion:
+        loader = client.pick_class(["UNETLoader", "DiffusionModelLoader"], "диффузия")
+        options = [str(v) for v in client.enum_values(loader, "unet_name")]
+        matched = [o for o in options if args.diffusion.lower() in o.lower()]
+        if not matched:
+            raise SystemExit(f"модель '{args.diffusion}' не найдена среди {options}")
+        names["diffusion"] = matched[0]
+
     sampler = SamplerSettings(steps=args.steps, cfg=args.cfg)
-    sampler.validate()
+    if args.allow_cfg1 and sampler.cfg <= 1.0:
+        # Осознанный обход: дистиллированный klein иначе не запустить, но
+        # негативные промпты при cfg=1 не действуют — это должно быть видно.
+        print("ВНИМАНИЕ: cfg<=1, негативные промпты НЕ действуют "
+              "(дистиллированная модель). Сравнение с базовой некорректно "
+              "в части негативов.")
+    else:
+        sampler.validate()
+
+    # Метка модели попадает и в имя файла, и в префикс сохранения ComfyUI,
+    # иначе в его выводе не отличить, чем сгенерирован кадр.
+    model_tag = (names["diffusion"].replace(".safetensors", "")
+                 .replace("flux-2-", "").replace("klein-", "k"))
 
     out_root = Path(args.out)
     shared_negative = data.get("shared_negative", "")
@@ -174,7 +195,7 @@ def cmd_concepts(args: argparse.Namespace) -> int:
             seed = args.seed_base + seed_index
             # Стиль в имени файла: оба варианта ложатся в одну папку и
             # попадают на общий контактный лист рядом — так их и сравнивают.
-            dest = out_root / unit["id"] / f"{unit['id']}_{style}_s{seed}.png"
+            dest = out_root / unit["id"] / f"{unit['id']}_{model_tag}_{style}_s{seed}.png"
             if dest.exists() and dest.stat().st_size > 0:
                 print(f"  [skip] {dest.name}")
                 done += 1
@@ -184,7 +205,8 @@ def cmd_concepts(args: argparse.Namespace) -> int:
                 client, positive=positive, negative=negative,
                 width=width, height=height, seed=seed, sampler=sampler,
                 diffusion_name=names["diffusion"], clip_name=names["clip"],
-                vae_name=names["vae"], filename_prefix=f"emberglass/{unit['id']}")
+                vae_name=names["vae"],
+                filename_prefix=f"emberglass/{unit['id']}_{model_tag}_{style}")
 
             problems = client.validate_graph(graph)
             if problems:
@@ -281,6 +303,10 @@ def main() -> int:
     concepts.add_argument("--faction", choices=["MRC", "KLN"])
     concepts.add_argument("--unit-class", dest="unit_class")
     concepts.add_argument("--timeout", type=float, default=1800.0)
+    concepts.add_argument("--diffusion",
+                          help="подстрока имени файла модели; без неё берётся найденная автоматически")
+    concepts.add_argument("--allow-cfg1", action="store_true",
+                          help="разрешить cfg<=1 для дистиллированных моделей; негативы при этом не работают")
     concepts.add_argument(
         "--prompt-style", nargs="+", choices=["flux", "gdd"], default=["flux"],
         help="flux — переписанный под Qwen3 (по умолчанию); gdd — дословный §11.2/§11.3. "
