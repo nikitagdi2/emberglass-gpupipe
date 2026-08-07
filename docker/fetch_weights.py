@@ -82,7 +82,34 @@ def main() -> int:
     parser.add_argument("--models", default="/workspace/models")
     parser.add_argument("--skip-trellis", action="store_true")
     parser.add_argument("--skip-flux", action="store_true")
+    parser.add_argument("--preset", action="append", default=[],
+                        help="пресет модели из pipeline/models.py; можно повторять")
+    parser.add_argument("--pipe", default=os.environ.get("PIPE", "/opt/pipe"))
     args = parser.parse_args()
+
+    if args.preset:
+        sys.path.insert(0, args.pipe)
+        import models as model_registry
+
+        token_env = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+        comfy_root = Path(args.comfy)
+        problems: list[str] = []
+        for preset_id in args.preset:
+            preset = model_registry.get(preset_id)
+            print(f"== {preset.title} ==")
+            for spec in preset.files:
+                target = Target(f"{preset.id}/{spec.dest}", spec.repo, spec.patterns,
+                                comfy_root / "models" / spec.dest, gated=spec.gated)
+                try:
+                    fetch(target, token_env)
+                except RuntimeError as error:
+                    print(f"  [FAIL] {error}", file=sys.stderr)
+                    problems.append(target.name)
+        if problems:
+            print(f"\nНЕ загружено: {', '.join(problems)}", file=sys.stderr)
+            return 1
+        print("\nвеса пресетов готовы")
+        return 0
 
     token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
     comfy = Path(args.comfy)

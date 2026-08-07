@@ -41,7 +41,7 @@ class SamplerSettings:
     sampler: str = "euler"
     scheduler: str = "simple"
     # Осознанное разрешение cfg<=1 для дистиллированных сборок. Проверка
-    # живёт здесь, а не только в вызывающем коде: build_flux2_graph зовёт
+    # живёт здесь, а не только в вызывающем коде: build_txt2img_graph зовёт
     # validate() сам, и обход, сделанный снаружи, до него не доходил.
     allow_low_cfg: bool = False
 
@@ -179,11 +179,16 @@ class ComfyClient:
         return dest
 
 
-def build_flux2_graph(client: ComfyClient, *, positive: str, negative: str, width: int,
-                      height: int, seed: int, sampler: SamplerSettings,
-                      diffusion_name: str, clip_name: str, vae_name: str,
-                      filename_prefix: str, plan: GraphPlan | None = None) -> dict:
-    """API-граф FLUX.2 klein, собранный под фактическую схему сервера."""
+def build_txt2img_graph(client: ComfyClient, *, positive: str, negative: str, width: int,
+                        height: int, seed: int, sampler: SamplerSettings,
+                        diffusion_name: str, clip_name: str, vae_name: str,
+                        filename_prefix: str, clip_type: str = "flux2",
+                        plan: GraphPlan | None = None) -> dict:
+    """API-граф text2img под фактическую схему сервера.
+
+    Форма графа одинакова для всех поддерживаемых семей моделей; различается
+    только тип текстового энкодера, поэтому он и вынесен в параметр.
+    """
     sampler.validate()
     plan = plan or GraphPlan()
 
@@ -204,11 +209,12 @@ def build_flux2_graph(client: ComfyClient, *, positive: str, negative: str, widt
     clip_inputs = {"clip_name": clip_name}
     if "type" in client.input_names(cls_clip):
         options = [str(v) for v in client.enum_values(cls_clip, "type")]
-        preferred = next((v for v in options if "flux2" in v.lower()),
-                         next((v for v in options if "flux" in v.lower()), None))
-        if preferred is None:
-            raise ComfyError(f"{cls_clip}.type: не нашёл вариант для flux2, доступно {options}")
-        clip_inputs["type"] = preferred
+        if clip_type not in options:
+            raise ComfyError(
+                f"{cls_clip}.type не знает '{clip_type}' в этой ревизии ComfyUI. "
+                f"Доступно: {sorted(options)}"
+            )
+        clip_inputs["type"] = clip_type
 
     latent_inputs = {"width": width, "height": height, "batch_size": 1}
 

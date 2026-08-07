@@ -22,7 +22,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from comfy_client import ComfyClient, ComfyError, SamplerSettings, build_flux2_graph  # noqa: E402
+import models  # noqa: E402
+from comfy_client import ComfyClient, ComfyError, SamplerSettings, build_txt2img_graph  # noqa: E402
 from sheets import contact_sheet  # noqa: E402
 
 
@@ -66,26 +67,28 @@ def resolve_prompt(entry: dict, style: str, shared_negative: str) -> tuple[str, 
     return positive, ", ".join(filter(None, [negative, shared_negative]))
 
 
-def resolve_model_names(client: ComfyClient) -> dict:
-    """Имена файлов моделей берём из живой схемы, а не из констант."""
-    def pick(class_type: str, input_name: str, needles: list[str], role: str) -> str:
+def resolve_model_names(client: ComfyClient, preset: models.ModelPreset) -> dict:
+    """Имена файлов берём из живой схемы по подсказкам пресета, а не из констант."""
+    def pick(class_type: str, input_name: str, needle: str, role: str) -> str:
         options = [str(v) for v in client.enum_values(class_type, input_name)]
         if not options:
             raise ComfyError(f"{role}: {class_type}.{input_name} пуст — веса не загружены?")
-        for needle in needles:
-            match = next((o for o in options if needle in o.lower()), None)
-            if match:
-                return match
-        raise ComfyError(f"{role}: среди {options} нет ничего похожего на {needles}")
+        match = next((o for o in options if needle.lower() in o.lower()), None)
+        if match is None:
+            raise ComfyError(
+                f"{role}: файла с '{needle}' нет среди {options}. "
+                f"Загрузить веса пресета: fetch_weights.py --preset {preset.id}"
+            )
+        return match
 
     diffusion_cls = client.pick_class(["UNETLoader", "DiffusionModelLoader"], "диффузия")
     clip_cls = client.pick_class(["CLIPLoader"], "энкодер")
     vae_cls = client.pick_class(["VAELoader"], "vae")
 
     return {
-        "diffusion": pick(diffusion_cls, "unet_name", ["klein-base", "klein", "flux"], "диффузия"),
-        "clip": pick(clip_cls, "clip_name", ["qwen_3_8b", "qwen"], "текстовый энкодер"),
-        "vae": pick(vae_cls, "vae_name", ["flux2-vae", "flux2"], "vae"),
+        "diffusion": pick(diffusion_cls, "unet_name", preset.diffusion_hint, "диффузия"),
+        "clip": pick(clip_cls, "clip_name", preset.clip_hint, "текстовый энкодер"),
+        "vae": pick(vae_cls, "vae_name", preset.vae_hint, "vae"),
     }
 
 
@@ -111,20 +114,27 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         print(f"  НЕДОСТУПЕН: {error}")
         return 1
 
+    preset = models.get(args.model)
+    print(f"== пресет {preset.id}: {preset.title} ==")
+    if not preset.negatives_work:
+        print("  cfg<=1 по контракту модели — негативные промпты не действуют")
+
     try:
-        names = resolve_model_names(client)
+        names = resolve_model_names(client, preset)
         for role, value in names.items():
             print(f"  {role}: {value}")
     except ComfyError as error:
         print(f"  веса: {error}")
         return 1
 
-    print("== граф FLUX.2 ==")
+    print("== граф ==")
     try:
-        graph = build_flux2_graph(
+        graph = build_txt2img_graph(
             client, positive="probe", negative="probe", width=512, height=512, seed=0,
-            sampler=SamplerSettings(), diffusion_name=names["diffusion"],
-            clip_name=names["clip"], vae_name=names["vae"], filename_prefix="probe")
+            sampler=SamplerSettings(steps=preset.steps, cfg=preset.cfg,
+                                    allow_low_cfg=not preset.negatives_work),
+            diffusion_name=names["diffusion"], clip_name=names["clip"],
+            vae_name=names["vae"], clip_type=preset.clip_type, filename_prefix="probe")
     except ComfyError as error:
         print(f"  собрать не удалось: {error}")
         return 1
@@ -146,31 +156,23 @@ def cmd_concepts(args: argparse.Namespace) -> int:
     if not units:
         raise SystemExit("под фильтры не попал ни один юнит")
 
+    preset = models.get(args.model)
     client = ComfyClient(args.comfy_url)
-    names = resolve_model_names(client)
+    names = resolve_model_names(client, preset)
 
-    if args.diffusion:
-        loader = client.pick_class(["UNETLoader", "DiffusionModelLoader"], "диффузия")
-        options = [str(v) for v in client.enum_values(loader, "unet_name")]
-        matched = [o for o in options if args.diffusion.lower() in o.lower()]
-        if not matched:
-            raise SystemExit(f"модель '{args.diffusion}' не найдена среди {options}")
-        names["diffusion"] = matched[0]
-
-    sampler = SamplerSettings(steps=args.steps, cfg=args.cfg, allow_low_cfg=args.allow_cfg1)
-    if args.allow_cfg1 and sampler.cfg <= 1.0:
-        # Осознанный обход: дистиллированный klein иначе не запустить, но
-        # негативные промпты при cfg=1 не действуют — это должно быть видно.
-        print("ВНИМАНИЕ: cfg<=1, негативные промпты НЕ действуют "
-              "(дистиллированная модель). Сравнение с базовой некорректно "
-              "в части негативов.")
-    else:
-        sampler.validate()
+    # Параметры сэмплера берутся из пресета; явные ключи их перекрывают.
+    steps = args.steps if args.steps is not None else preset.steps
+    cfg = args.cfg if args.cfg is not None else preset.cfg
+    sampler = SamplerSettings(steps=steps, cfg=cfg,
+                              allow_low_cfg=args.allow_cfg1 or not preset.negatives_work)
+    if sampler.cfg <= 1.0:
+        print(f"ВНИМАНИЕ: cfg={sampler.cfg} — негативные промпты НЕ действуют. "
+              "В кадре может проступить то, что негатив запрещает.")
+    sampler.validate()
 
     # Метка модели попадает и в имя файла, и в префикс сохранения ComfyUI,
     # иначе в его выводе не отличить, чем сгенерирован кадр.
-    model_tag = (names["diffusion"].replace(".safetensors", "")
-                 .replace("flux-2-", "").replace("klein-", "k"))
+    model_tag = preset.id
 
     out_root = Path(args.out)
     shared_negative = data.get("shared_negative", "")
@@ -183,7 +185,8 @@ def cmd_concepts(args: argparse.Namespace) -> int:
 
     planned = len(work) * args.seeds
     print(f"юнитов {len(units)} x стилей {len(styles)} x сидов {args.seeds} = {planned} кадров")
-    print(f"модель: {names['diffusion']}, cfg={sampler.cfg}, steps={sampler.steps}")
+    print(f"модель: {preset.title} [{preset.clip_type}], cfg={sampler.cfg}, steps={sampler.steps}")
+    print(f"  файлы: {names['diffusion']} / {names['clip']} / {names['vae']}")
     if skipped:
         print(f"без варианта промпта, пропущены: {', '.join(skipped)}")
 
@@ -201,11 +204,11 @@ def cmd_concepts(args: argparse.Namespace) -> int:
                 done += 1
                 continue
 
-            graph = build_flux2_graph(
+            graph = build_txt2img_graph(
                 client, positive=positive, negative=negative,
                 width=width, height=height, seed=seed, sampler=sampler,
                 diffusion_name=names["diffusion"], clip_name=names["clip"],
-                vae_name=names["vae"],
+                vae_name=names["vae"], clip_type=preset.clip_type,
                 filename_prefix=f"emberglass/{unit['id']}_{model_tag}_{style}")
 
             problems = client.validate_graph(graph)
@@ -290,23 +293,24 @@ def main() -> int:
     parser.add_argument("--sheets", default="/workspace/output/sheets")
     parser.add_argument("--mesh-out", default="/workspace/output/mesh")
     parser.add_argument("--seed-base", type=int, default=20260803)
+    parser.add_argument("--model", default="klein-base-9b",
+                        choices=sorted(models.PRESETS),
+                        help="пресет модели; параметры сэмплера берутся из него")
 
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("doctor", help="проверить окружение, веса и валидность графа")
 
-    concepts = sub.add_parser("concepts", help="батч концептов через FLUX.2 klein")
+    concepts = sub.add_parser("concepts", help="батч концептов")
     concepts.add_argument("--seeds", type=int, default=4)
-    concepts.add_argument("--steps", type=int, default=22)
-    concepts.add_argument("--cfg", type=float, default=4.0)
+    concepts.add_argument("--steps", type=int, default=None, help="перекрывает значение пресета")
+    concepts.add_argument("--cfg", type=float, default=None, help="перекрывает значение пресета")
     concepts.add_argument("--only", nargs="*")
     concepts.add_argument("--faction", choices=["MRC", "KLN"])
     concepts.add_argument("--unit-class", dest="unit_class")
     concepts.add_argument("--timeout", type=float, default=1800.0)
-    concepts.add_argument("--diffusion",
-                          help="подстрока имени файла модели; без неё берётся найденная автоматически")
     concepts.add_argument("--allow-cfg1", action="store_true",
-                          help="разрешить cfg<=1 для дистиллированных моделей; негативы при этом не работают")
+                          help="разрешить cfg<=1 вручную; негативы при этом не действуют")
     concepts.add_argument(
         "--prompt-style", nargs="+", choices=["flux", "gdd"], default=["flux"],
         help="flux — переписанный под Qwen3 (по умолчанию); gdd — дословный §11.2/§11.3. "
