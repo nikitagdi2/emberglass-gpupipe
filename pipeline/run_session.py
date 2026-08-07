@@ -157,7 +157,7 @@ def cmd_concepts(args: argparse.Namespace) -> int:
             raise SystemExit(f"модель '{args.diffusion}' не найдена среди {options}")
         names["diffusion"] = matched[0]
 
-    sampler = SamplerSettings(steps=args.steps, cfg=args.cfg)
+    sampler = SamplerSettings(steps=args.steps, cfg=args.cfg, allow_low_cfg=args.allow_cfg1)
     if args.allow_cfg1 and sampler.cfg <= 1.0:
         # Осознанный обход: дистиллированный klein иначе не запустить, но
         # негативные промпты при cfg=1 не действуют — это должно быть видно.

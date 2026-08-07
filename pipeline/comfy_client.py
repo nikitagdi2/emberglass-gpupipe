@@ -40,12 +40,16 @@ class SamplerSettings:
     cfg: float = 4.0
     sampler: str = "euler"
     scheduler: str = "simple"
+    # Осознанное разрешение cfg<=1 для дистиллированных сборок. Проверка
+    # живёт здесь, а не только в вызывающем коде: build_flux2_graph зовёт
+    # validate() сам, и обход, сделанный снаружи, до него не доходил.
+    allow_low_cfg: bool = False
 
     def validate(self) -> None:
-        if self.cfg <= 1.0:
+        if self.cfg <= 1.0 and not self.allow_low_cfg:
             raise ComfyError(
                 f"cfg={self.cfg}: при cfg<=1.0 негативный промпт не действует. "
-                "Нужен базовый klein и cfg>1."
+                "Нужен базовый klein и cfg>1, либо явный --allow-cfg1."
             )
 
 
