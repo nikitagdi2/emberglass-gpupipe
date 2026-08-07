@@ -141,6 +141,24 @@ class ComfyClient:
 
     # --- исполнение --------------------------------------------------------
 
+    def free(self, unload_models: bool = True, free_memory: bool = True) -> bool:
+        """Выгрузить модели и освободить VRAM.
+
+        Между сменами семейства моделей это обязательно: ComfyUI держит
+        загруженное в памяти, и тяжёлая модель поверх уже загруженных падает
+        по VRAM без внятного сообщения — снаружи виден только обрыв
+        соединения. Возвращает False, если сервер такого не умеет.
+        """
+        try:
+            response = requests.post(
+                f"{self.base_url}/free",
+                json={"unload_models": unload_models, "free_memory": free_memory},
+                timeout=self.timeout,
+            )
+            return response.status_code < 400
+        except requests.RequestException:
+            return False
+
     def submit(self, graph: dict) -> str:
         response = requests.post(
             f"{self.base_url}/prompt",

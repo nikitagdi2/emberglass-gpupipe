@@ -93,6 +93,17 @@ def resolve_prompt(entry: dict, data: dict, style: str) -> tuple[str, str] | Non
     return compose_positive(entry, data), ""
 
 
+def select_presets(ids: list[str]) -> list[models.ModelPreset]:
+    """Пресеты в порядке запуска, с проверкой отклонённых и порядка загрузки."""
+    presets = [models.get(i) for i in ids]
+
+    for preset in presets:
+        if preset.retired:
+            raise SystemExit(f"пресет '{preset.id}' отклонён: {preset.retired}")
+
+    return presets
+
+
 def resolve_model_names(client: ComfyClient, preset: models.ModelPreset) -> dict:
     """Имена файлов берём из живой схемы по подсказкам пресета, а не из констант."""
     def pick(class_type: str, input_name: str, needle: str, role: str) -> str:
@@ -140,7 +151,7 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         print(f"  НЕДОСТУПЕН: {error}")
         return 1
 
-    preset = models.get(args.model)
+    preset = select_presets(args.model)[0]
     print(f"== пресет {preset.id}: {preset.title} ==")
     if not preset.negatives_work:
         print("  cfg<=1 по контракту модели — негативные промпты не действуют")
@@ -182,75 +193,84 @@ def cmd_concepts(args: argparse.Namespace) -> int:
     if not units:
         raise SystemExit("под фильтры не попал ни один юнит")
 
-    preset = models.get(args.model)
+    presets = select_presets(args.model)
     client = ComfyClient(args.comfy_url)
-    names = resolve_model_names(client, preset)
-
-    # Параметры сэмплера берутся из пресета; явные ключи их перекрывают.
-    steps = args.steps if args.steps is not None else preset.steps
-    cfg = args.cfg if args.cfg is not None else preset.cfg
-    sampler = SamplerSettings(steps=steps, cfg=cfg,
-                              allow_low_cfg=args.allow_cfg1 or not preset.negatives_work)
-    if sampler.cfg <= 1.0:
-        print(f"ВНИМАНИЕ: cfg={sampler.cfg} — негативные промпты НЕ действуют. "
-              "В кадре может проступить то, что негатив запрещает.")
-    sampler.validate()
-
-    # Метка модели попадает и в имя файла, и в префикс сохранения ComfyUI,
-    # иначе в его выводе не отличить, чем сгенерирован кадр.
-    model_tag = preset.id
-
     out_root = Path(args.out)
-
     styles = args.prompt_style
+
     resolved = [(unit, style, resolve_prompt(unit, data, style))
                 for unit in units for style in styles]
     skipped = [f"{u['id']}/{s}" for u, s, p in resolved if p is None]
     work = [(u, s, p) for u, s, p in resolved if p is not None]
-
-    planned = len(work) * args.seeds
-    print(f"юнитов {len(units)} x стилей {len(styles)} x сидов {args.seeds} = {planned} кадров")
-    print(f"модель: {preset.title} [{preset.clip_type}], cfg={sampler.cfg}, steps={sampler.steps}")
-    print(f"  файлы: {names['diffusion']} / {names['clip']} / {names['vae']}")
     if skipped:
         print(f"без варианта промпта, пропущены: {', '.join(skipped)}")
 
+    planned = len(work) * args.seeds * len(presets)
+    print(f"юнитов {len(units)} x стилей {len(styles)} x сидов {args.seeds} "
+          f"x моделей {len(presets)} = {planned} кадров")
+
     done = 0
-    for unit, style, (positive, negative) in work:
-        width, height = unit["sheet_px"]
+    for index, preset in enumerate(presets):
+        # Перед сменой семейства освобождаем VRAM. Без этого тяжёлая модель,
+        # загруженная поверх предыдущих, роняет ComfyUI без сообщения об OOM.
+        if index > 0:
+            if client.free():
+                print("  VRAM освобождена перед сменой модели")
+            else:
+                print("  ВНИМАНИЕ: /free недоступен, VRAM не освобождена. "
+                      "Если упадёт — ставь тяжёлую модель первой "
+                      f"(порядок по весу: "
+                      f"{' '.join(p.id for p in sorted(presets, key=lambda p: -p.vram_gb))})")
 
-        for seed_index in range(args.seeds):
-            seed = args.seed_base + seed_index
-            # Стиль в имени файла: оба варианта ложатся в одну папку и
-            # попадают на общий контактный лист рядом — так их и сравнивают.
-            dest = out_root / unit["id"] / f"{unit['id']}_{model_tag}_{style}_s{seed}.png"
-            if dest.exists() and dest.stat().st_size > 0:
-                print(f"  [skip] {dest.name}")
+        names = resolve_model_names(client, preset)
+
+        # Параметры сэмплера берутся из пресета; явные ключи их перекрывают.
+        steps = args.steps if args.steps is not None else preset.steps
+        cfg = args.cfg if args.cfg is not None else preset.cfg
+        sampler = SamplerSettings(steps=steps, cfg=cfg,
+                                  allow_low_cfg=args.allow_cfg1 or not preset.negatives_work)
+        sampler.validate()
+
+        print(f"\n== {preset.title} [{preset.clip_type}] "
+              f"cfg={sampler.cfg} steps={sampler.steps} ==")
+        print(f"  файлы: {names['diffusion']} / {names['clip']} / {names['vae']}")
+
+        for unit, style, (positive, negative) in work:
+            width, height = unit["sheet_px"]
+
+            for seed_index in range(args.seeds):
+                seed = args.seed_base + seed_index
+                # Метка модели и стиля — в имени файла и в префиксе ComfyUI:
+                # иначе в его выводе не отличить, чем сгенерирован кадр.
+                dest = (out_root / unit["id"] /
+                        f"{unit['id']}_{preset.id}_{style}_s{seed}.png")
+                if dest.exists() and dest.stat().st_size > 0:
+                    print(f"  [skip] {dest.name}")
+                    done += 1
+                    continue
+
+                graph = build_txt2img_graph(
+                    client, positive=positive, negative=negative,
+                    width=width, height=height, seed=seed, sampler=sampler,
+                    diffusion_name=names["diffusion"], clip_name=names["clip"],
+                    vae_name=names["vae"], clip_type=preset.clip_type,
+                    filename_prefix=f"emberglass/{unit['id']}_{preset.id}_{style}")
+
+                problems = client.validate_graph(graph)
+                if problems:
+                    raise SystemExit("граф разошёлся со схемой:\n  " + "\n  ".join(problems))
+
+                print(f"  [gen ] {unit['id']} [{style}] seed={seed} {width}x{height}")
+                outputs = client.wait(client.submit(graph), timeout_seconds=args.timeout)
+
+                images = [img for node in outputs.values() for img in node.get("images", [])]
+                if not images:
+                    print(f"  [WARN] {unit['id']} [{style}] seed={seed}: изображений нет")
+                    continue
+                client.download_image(images[0], dest)
                 done += 1
-                continue
 
-            graph = build_txt2img_graph(
-                client, positive=positive, negative=negative,
-                width=width, height=height, seed=seed, sampler=sampler,
-                diffusion_name=names["diffusion"], clip_name=names["clip"],
-                vae_name=names["vae"], clip_type=preset.clip_type,
-                filename_prefix=f"emberglass/{unit['id']}_{model_tag}_{style}")
-
-            problems = client.validate_graph(graph)
-            if problems:
-                raise SystemExit("граф разошёлся со схемой:\n  " + "\n  ".join(problems))
-
-            print(f"  [gen ] {unit['id']} [{style}] seed={seed} {width}x{height}")
-            outputs = client.wait(client.submit(graph), timeout_seconds=args.timeout)
-
-            images = [img for node in outputs.values() for img in node.get("images", [])]
-            if not images:
-                print(f"  [WARN] {unit['id']} [{style}] seed={seed}: сервер не вернул изображений")
-                continue
-            client.download_image(images[0], dest)
-            done += 1
-
-    print(f"готово: {done}/{planned}")
+    print(f"\nготово: {done}/{planned}")
     return 0
 
 
@@ -318,9 +338,10 @@ def main() -> int:
     parser.add_argument("--sheets", default="/workspace/output/sheets")
     parser.add_argument("--mesh-out", default="/workspace/output/mesh")
     parser.add_argument("--seed-base", type=int, default=20260803)
-    parser.add_argument("--model", default="klein-base-9b",
+    parser.add_argument("--model", nargs="+", default=["klein-9b"],
                         choices=sorted(models.PRESETS),
-                        help="пресет модели; параметры сэмплера берутся из него")
+                        help="пресеты моделей; несколько — прогон по каждому, "
+                             "VRAM освобождается между ними")
 
     sub = parser.add_subparsers(dest="command", required=True)
 

@@ -36,6 +36,11 @@ class ModelPreset:
     sampler: str = "euler"
     scheduler: str = "simple"
     negatives_work: bool = True
+    # Порядок загрузки моделей в одном процессе ComfyUI имеет значение:
+    # тяжёлая модель поверх уже загруженных лёгких валит его нехваткой VRAM
+    # без внятного сообщения. Оценка нужна, чтобы предупредить о таком порядке.
+    vram_gb: float = 16.0
+    retired: str = ""
     notes: str = ""
     # Подсказки для выбора конкретного файла среди уже загруженных.
     diffusion_hint: str = ""
@@ -68,9 +73,14 @@ PRESETS: dict[str, ModelPreset] = {
                        dest="diffusion_models", gated=True),
             _FLUX2_ENCODER, _FLUX2_VAE,
         ],
-        steps=22, cfg=4.0,
+        steps=22, cfg=4.0, vram_gb=15.0,
         diffusion_hint="klein-base-9b", clip_hint="qwen_3_8b", vae_hint="flux2-vae",
-        notes="Базовая сборка: cfg>1, негативные промпты действуют.",
+        retired="Отклонён арт-директором 2026-08-07: картинка заметно беднее "
+                "остальных. Оставлен в реестре как замеренный ориентир, "
+                "в прогоны не берётся.",
+        notes="Базовая сборка: cfg>1. Была единственной, кто стабильно не "
+              "давал ни земли, ни тени — но после перевода промптов на "
+              "позитив это перестало быть её преимуществом.",
     ),
 
     "klein-9b": ModelPreset(
@@ -83,7 +93,7 @@ PRESETS: dict[str, ModelPreset] = {
                        dest="diffusion_models", gated=True),
             _FLUX2_ENCODER, _FLUX2_VAE,
         ],
-        steps=4, cfg=1.0, negatives_work=False,
+        steps=4, cfg=1.0, negatives_work=False, vram_gb=12.0,
         diffusion_hint="klein-9b", clip_hint="qwen_3_8b", vae_hint="flux2-vae",
         notes="Примерно вшестеро быстрее базовой, но при cfg=1 негативы не "
               "действуют: в кадре проступает то, что негатив запрещает "
@@ -105,7 +115,7 @@ PRESETS: dict[str, ModelPreset] = {
                        patterns=[r"vae/qwen_image_vae\.safetensors$"],
                        dest="vae"),
         ],
-        steps=8, cfg=1.0, negatives_work=False,
+        steps=8, cfg=1.0, negatives_work=False, vram_gb=14.0,
         diffusion_hint="krea2_turbo", clip_hint="qwen3vl_4b", vae_hint="qwen_image_vae",
         notes="Turbo-сборка: энкодер Qwen3-VL-4B, VAE от Qwen Image. "
               "Как и всякая turbo, идёт на низком cfg — негативы под вопросом.",
@@ -126,7 +136,7 @@ PRESETS: dict[str, ModelPreset] = {
                        patterns=[r"split_files/vae/qwen_image_vae\.safetensors$"],
                        dest="vae"),
         ],
-        steps=20, cfg=3.5,
+        steps=20, cfg=3.5, vram_gb=28.0,
         diffusion_hint="qwen_image_fp8", clip_hint="qwen_2.5_vl_7b", vae_hint="qwen_image_vae",
         notes="Полноразмерная Qwen-Image. ТРЕБУЕТ ЧИСТОГО ПРОЦЕССА ComfyUI: "
               "поверх уже загруженных klein и krea2 она валит его нехваткой "
@@ -152,7 +162,7 @@ PRESETS: dict[str, ModelPreset] = {
                        patterns=[r"split_files/vae/qwen_image_vae\.safetensors$"],
                        dest="vae"),
         ],
-        steps=8, cfg=1.0, negatives_work=False,
+        steps=8, cfg=1.0, negatives_work=False, vram_gb=24.0,
         diffusion_hint="qwen_image_distill", clip_hint="qwen_2.5_vl_7b", vae_hint="qwen_image_vae",
         notes="Неофициальная дистилляция Qwen-Image из того же репозитория.",
     ),
