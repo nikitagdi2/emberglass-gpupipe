@@ -48,12 +48,17 @@ def select_units(data: dict, only: list[str] | None, faction: str | None,
     return units
 
 
-def resolve_prompt(entry: dict, style: str, shared_negative: str) -> tuple[str, str] | None:
+def resolve_prompt(entry: dict, style: str, shared_negative: str,
+                   constraints: str | None = None) -> tuple[str, str] | None:
     """Промпт в запрошенном стиле; None — если такого варианта у записи нет.
 
     Стиль `gdd` — дословный текст §11.2/§11.3, извлечённый скриптом
     sync_gdd_prompts.py. У юнитов, дописанных нами, исходника в GDD нет,
     поэтому в режиме сравнения они молча не участвуют — сравнивать не с чем.
+
+    `constraints` подклеивается к позитиву, когда негативы у модели не
+    действуют: при cfg<=1 запреты игнорируются молча, и единственный способ
+    их удержать — сказать то же самое утвердительно.
     """
     if style == "gdd":
         positive = entry.get("positive_gdd")
@@ -63,6 +68,10 @@ def resolve_prompt(entry: dict, style: str, shared_negative: str) -> tuple[str, 
     else:
         positive = entry["positive"]
         negative = entry.get("negative", "")
+
+    if constraints:
+        positive = " ".join(filter(None, [positive, constraints,
+                                          entry.get("positive_constraints", "")]))
 
     return positive, ", ".join(filter(None, [negative, shared_negative]))
 
@@ -178,7 +187,15 @@ def cmd_concepts(args: argparse.Namespace) -> int:
     shared_negative = data.get("shared_negative", "")
 
     styles = args.prompt_style
-    resolved = [(unit, style, resolve_prompt(unit, style, shared_negative))
+    # У моделей с cfg<=1 негативы не действуют, поэтому жёсткие ограничения
+    # переезжают в позитив. Ключ --no-positive-constraints снимает это, если
+    # нужно увидеть поведение модели без подпорок.
+    constraints = None
+    if not preset.negatives_work and not args.no_positive_constraints:
+        constraints = data.get("shared_positive_constraints", "")
+        print("ограничения перенесены в позитив: у этой модели негативы не действуют")
+
+    resolved = [(unit, style, resolve_prompt(unit, style, shared_negative, constraints))
                 for unit in units for style in styles]
     skipped = [f"{u['id']}/{s}" for u, s, p in resolved if p is None]
     work = [(u, s, p) for u, s, p in resolved if p is not None]
@@ -311,6 +328,8 @@ def main() -> int:
     concepts.add_argument("--timeout", type=float, default=1800.0)
     concepts.add_argument("--allow-cfg1", action="store_true",
                           help="разрешить cfg<=1 вручную; негативы при этом не действуют")
+    concepts.add_argument("--no-positive-constraints", action="store_true",
+                          help="не подклеивать ограничения к позитиву у моделей с мёртвым негативом")
     concepts.add_argument(
         "--prompt-style", nargs="+", choices=["flux", "gdd"], default=["flux"],
         help="flux — переписанный под Qwen3 (по умолчанию); gdd — дословный §11.2/§11.3. "
