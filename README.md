@@ -148,6 +148,7 @@ Template:
 - **Container Image:** `ghcr.io/nikitagdi2/emberglass-gpupipe:latest`
 - **Container Disk:** 120 GB, **Volume Disk:** 0
 - **Expose HTTP Ports:** 8188
+- **Expose TCP Ports:** 22 — обязательно, см. ниже
 - **Environment:** `HF_TOKEN`
 
 Community Cloud, не Secure.
@@ -191,13 +192,27 @@ rsync -avz -e "ssh -p <port>" root@<ip>:/workspace/output/ ./out/
 
 Образ поднимает **sshd** сам: RunPod кладёт публичный ключ аккаунта в
 переменную `PUBLIC_KEY`, `start.sh` пишет его в `authorized_keys` и стартует
-демон. Ключ добавляется в **RunPod → Settings → SSH Public Keys**; без него
-sshd поднимется, но пускать будет некого, и результаты придётся забирать
-через `runpodctl receive`.
+демон. Ключ добавляется в **RunPod → Settings → SSH Public Keys**.
 
-Последовательность проверена сквозным тестом (вход по ключу, `rsync` вниз,
-отказ без ключа) — без sshd в образе инструкция выше была невыполнима:
-слушать было некому.
+### Два разных SSH, и файлы ходят только по одному
+
+RunPod даёт два способа подключения, и это важно не перепутать:
+
+| Способ | Вид | Интерактивный вход | scp / rsync |
+| --- | --- | --- | --- |
+| Прокси RunPod | `ssh <pod-id>-<hash>@ssh.runpod.io` | да | **нет** |
+| Прямой TCP | `ssh root@<ip> -p <port>` | да | да |
+
+Проверено на живом поде: через прокси `scp` отвечает
+`subsystem request failed on channel 0` — SFTP-подсистемы там нет, и `rsync`
+по той же причине не работает. Прокси годится только для команд.
+
+Поэтому в шаблоне обязателен **Expose TCP Ports: 22**: тогда RunPod выдаёт
+пару `<ip>:<port>`, и выгрузка результатов идёт по ней. Без этого забрать
+батч с пода будет нечем.
+
+Сама последовательность поднятия sshd проверена отдельным сквозным тестом:
+вход по ключу, `rsync` вниз, отказ без ключа.
 
 ### Осторожно с push-триггером CI
 

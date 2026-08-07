@@ -15,7 +15,11 @@ import importlib.util
 import sys
 
 # Импортируются на любой машине: драйвер им не нужен.
-IMPORTABLE = ("torch", "xformers", "trimesh", "nvdiffrast", "PIL", "requests")
+# torchaudio здесь не для полноты: он подгружает нативную библиотеку и падает,
+# если приехал сборкой под другую CUDA, чем torch. Именно так ComfyUI однажды
+# и слёг на поде — проверка обязана ловить это на сборке.
+IMPORTABLE = ("torch", "torchvision", "torchaudio", "xformers", "trimesh",
+              "nvdiffrast", "PIL", "requests")
 
 # Требуют драйвер при импорте — проверяем только наличие.
 # Кортеж = допустимые имена модуля: пакеты ставятся под разными именами
