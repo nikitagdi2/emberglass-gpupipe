@@ -164,19 +164,13 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI $COMFY && \
 # другую CUDA, возвращаем парные версии. Иначе ComfyUI падает на импорте уже
 # на оплаченной карте, а не здесь.
 RUN set -eux; \
-    BAD="$(python - <<'PY'
-import importlib.metadata as md
-bad = [n for n in ("torch", "torchvision", "torchaudio")
-       if "+cu124" not in md.version(n)]
-print(",".join(bad))
-PY
-)"; \
+    BAD="$(python -c 'import importlib.metadata as md; print(",".join(n for n in ("torch","torchvision","torchaudio") if "+cu124" not in md.version(n)))')"; \
     if [ -n "$BAD" ]; then \
-      echo "стек уехал с cu124: $BAD — возвращаю парные версии"; \
+      echo "стек уехал с cu124: $BAD - возвращаю парные версии"; \
       pip install --force-reinstall torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
         --index-url https://download.pytorch.org/whl/cu124; \
     fi; \
-    python -c "import torch, torchvision, torchaudio; print('torch-стек:', torch.__version__, torchvision.__version__, torchaudio.__version__)"
+    python -c "import torch, torchvision, torchaudio; print('torch-stack:', torch.__version__, torchvision.__version__, torchaudio.__version__)"
 
 WORKDIR $COMFY/custom_nodes
 RUN git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager.git && \
