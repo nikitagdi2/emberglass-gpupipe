@@ -303,8 +303,10 @@ def cmd_sheets(args: argparse.Namespace) -> int:
 
 
 def cmd_mesh(args: argparse.Namespace) -> int:
-    from trellis3d import MeshSettings, Trellis2Runner
+    import mesh3d
 
+    # Картинки не обязаны рождаться на поде: концепты может принести человек,
+    # отобрав их снаружи. Поэтому источник задаётся явно.
     picks: list[Path] = []
     if args.pick:
         for line in Path(args.pick).read_text(encoding="utf-8").splitlines():
@@ -312,22 +314,45 @@ def cmd_mesh(args: argparse.Namespace) -> int:
             if line and not line.startswith("#"):
                 picks.append(Path(line))
     else:
-        picks = sorted(Path(args.out).rglob("*.png"))
+        source = Path(args.source) if args.source else Path(args.out)
+        if not source.exists():
+            raise SystemExit(f"каталог с картинками не найден: {source}")
+        picks = sorted(p for p in source.rglob("*")
+                       if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"))
 
     if not picks:
         raise SystemExit("нет входных изображений")
 
-    runner = Trellis2Runner(model_id=args.model,
-                            attn_backend=os.environ.get("ATTN_BACKEND"))
-    settings = MeshSettings(decimation_target=args.decimation,
-                            texture_size=args.texture,
-                            seed=args.seed_base)
+    backends = [mesh3d.get(b) for b in args.backend]
+    settings = mesh3d.MeshSettings(decimation_target=args.decimation,
+                                   texture_size=args.texture,
+                                   resolution=args.resolution,
+                                   low_vram=args.low_vram,
+                                   seed=args.seed_base)
 
     mesh_dir = Path(args.mesh_out)
-    print(f"изображений на вход: {len(picks)}")
-    for image_path in picks:
-        runner.run(image_path, mesh_dir / f"{image_path.stem}.glb", settings)
-    return 0
+    print(f"изображений {len(picks)} x бэкендов {len(backends)} = "
+          f"{len(picks) * len(backends)} мешей")
+
+    failures = 0
+    for backend in backends:
+        print(f"\n== {backend.title} [{backend.license}] ==")
+        runner = mesh3d.make_runner(backend, os.environ.get("ATTN_BACKEND"))
+        for image_path in picks:
+            # Метка бэкенда в имени: иначе сравнить два меша от одной картинки
+            # будет нечем.
+            out_glb = mesh_dir / f"{image_path.stem}__{backend.id}.glb"
+            if out_glb.exists() and out_glb.stat().st_size > 0:
+                print(f"  [skip] {out_glb.name}")
+                continue
+            try:
+                runner.run(image_path, out_glb, settings)
+                print(f"  [ok  ] {out_glb.name}  {out_glb.stat().st_size / 2**20:.1f} МБ")
+            except SystemExit as error:
+                print(f"  [FAIL] {image_path.name}: {error}")
+                failures += 1
+
+    return 1 if failures else 0
 
 
 def main() -> int:
@@ -367,9 +392,15 @@ def main() -> int:
 
     mesh = sub.add_parser("mesh", help="image -> 3D через TRELLIS.2")
     mesh.add_argument("--pick", help="файл со списком путей к отобранным картинкам")
-    mesh.add_argument("--model", default="microsoft/TRELLIS.2-4B")
+    mesh.add_argument("--source", help="каталог с картинками; по умолчанию вывод concepts")
+    # Имя --backend, а не --model: верхнеуровневый --model уже занят пресетами
+    # 2D-моделей, и одинаковые имена argparse разруливает неочевидно.
+    mesh.add_argument("--backend", nargs="+", default=["trellis2"],
+                      help="бэкенды image->3D; несколько — сравнительный прогон")
     mesh.add_argument("--decimation", type=int, default=200_000)
     mesh.add_argument("--texture", type=int, default=2048)
+    mesh.add_argument("--resolution", type=int, default=1024)
+    mesh.add_argument("--low-vram", action="store_true", dest="low_vram")
 
     args = parser.parse_args()
     return {

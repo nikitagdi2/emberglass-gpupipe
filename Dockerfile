@@ -179,6 +179,48 @@ RUN git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager.git && \
       if [ -f "$d/requirements.txt" ]; then pip install -r "$d/requirements.txt" || true; fi; \
     done
 
+# ---------------------------------------------------------------------------
+# Pixal3D — второй кандидат на этап image->3D, для сравнения с TRELLIS.2.
+#
+# Ставится поверх окружения TRELLIS.2 (его же и требует его инструкция),
+# поэтому отдельного образа не нужно. Но он пинит свои версии pillow,
+# transformers и diffusers в то же окружение, где живут ComfyUI и TRELLIS.2,
+# и может их сломать — поэтому по умолчанию ВЫКЛЮЧЕН и собирается отдельным
+# тегом: --build-arg WITH_PIXAL3D=1.
+#
+# natten идёт из исходников: готовых колёс под torch2.6+cu124 нет (в релизах
+# NATTEN они существуют только для 0.17.5, а Pixal3D просит 0.21.0).
+# Ограничиваем архитектуру и число воркеров, иначе сборка не помещается
+# в память раннера.
+# ---------------------------------------------------------------------------
+ARG WITH_PIXAL3D=0
+ARG PIXAL3D_REF=master
+ARG NATTEN_VERSION=0.21.0
+ARG NATTEN_CUDA_ARCH="8.6"
+ARG NATTEN_N_WORKERS=2
+ENV PIXAL3D=/opt/Pixal3D
+
+RUN if [ "$WITH_PIXAL3D" = "1" ]; then \
+      set -eux; \
+      git clone --depth 1 --branch "$PIXAL3D_REF" \
+        https://github.com/TencentARC/Pixal3D.git $PIXAL3D; \
+      pip install -r $PIXAL3D/requirements.txt; \
+      NATTEN_CUDA_ARCH="$NATTEN_CUDA_ARCH" NATTEN_N_WORKERS="$NATTEN_N_WORKERS" \
+        pip install "natten==${NATTEN_VERSION}" --no-build-isolation; \
+      pip install https://github.com/LDYang694/Storages/releases/download/20260430/utils3d-0.0.2-py3-none-any.whl; \
+    else \
+      echo "Pixal3D пропущен (WITH_PIXAL3D=0)"; \
+    fi
+
+# Проверка, что установка Pixal3D не утащила за собой torch-стек: его
+# requirements тянут transformers/diffusers, которые способны поменять torch.
+RUN if [ "$WITH_PIXAL3D" = "1" ]; then \
+      python -c "import torch, torchvision, torchaudio; \
+assert all('+cu124' in m.__version__ for m in (torch, torchvision, torchaudio)), \
+  f'стек уехал: {torch.__version__} {torchvision.__version__} {torchaudio.__version__}'; \
+print('torch-стек цел после Pixal3D:', torch.__version__)"; \
+    fi
+
 RUN pip install hf_transfer "huggingface_hub[cli]" requests pillow numpy trimesh
 
 # runpodctl — запасной канал выгрузки: гоняет файлы через релей RunPod по
