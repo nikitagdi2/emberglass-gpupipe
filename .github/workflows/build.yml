@@ -9,6 +9,10 @@ on:
         description: "Компилировать flash-attn из исходников (долго)"
         type: boolean
         default: false
+      with_pixal3d:
+        description: "Ставить Pixal3D (компилирует natten из исходников, долго)"
+        type: boolean
+        default: false
 
 # Два прогона на одной ветке гонятся за тегом latest, и запушить его последним
 # может сборка СТАРОГО коммита — тогда latest молча откатывается назад.
@@ -61,7 +65,10 @@ jobs:
           # forward-совместимость с H100 через JIT.
           build-args: |
             WITH_FLASH_ATTN=${{ inputs.with_flash_attn && '1' || '0' }}
+            WITH_PIXAL3D=${{ inputs.with_pixal3d && '1' || '0' }}
             TORCH_ARCH_LIST=8.6;8.9+PTX
             MAX_JOBS=2
+            NATTEN_CUDA_ARCH=8.6
+            NATTEN_N_WORKERS=2
           cache-from: type=gha
           cache-to: type=gha,mode=max
