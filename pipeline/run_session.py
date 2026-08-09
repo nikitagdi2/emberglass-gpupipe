@@ -315,6 +315,22 @@ def cmd_sheets(args: argparse.Namespace) -> int:
     return 0
 
 
+def short_error(error: BaseException) -> str:
+    """Суть ошибки одной строкой.
+
+    Трейсбеки моделей уходят на десятки строк и топят собой протокол прогона,
+    а различимая часть у них обычно в конце.
+    """
+    text = " ".join(str(error).split())
+    if "gated repo" in text or "not in the authorized list" in text:
+        import re
+        match = re.search(r"huggingface\.co/([\w\-./]+)", text)
+        repo = match.group(1).split("/resolve")[0] if match else "?"
+        return (f"репозиторий {repo} gated — примите условия на "
+                f"huggingface.co/{repo} тем аккаунтом, чей HF_TOKEN на поде")
+    return text[:300]
+
+
 def cmd_mesh(args: argparse.Namespace) -> int:
     import mesh3d
 
@@ -350,7 +366,16 @@ def cmd_mesh(args: argparse.Namespace) -> int:
     failures = 0
     for backend in backends:
         print(f"\n== {backend.title} [{backend.license}] ==")
-        runner = mesh3d.make_runner(backend, os.environ.get("ATTN_BACKEND"))
+        # Падение одного бэкенда не должно уносить остальные: сравнительный
+        # прогон идёт на оплачиваемой карте, и потерять из-за него второй
+        # бэкенд — значит платить за сессию дважды.
+        try:
+            runner = mesh3d.make_runner(backend, os.environ.get("ATTN_BACKEND"))
+        except BaseException as error:  # noqa: BLE001 - см. выше
+            print(f"  [FAIL] бэкенд не поднялся: {short_error(error)}")
+            failures += 1
+            continue
+
         for image_path in picks:
             # Метка бэкенда в имени: иначе сравнить два меша от одной картинки
             # будет нечем.
@@ -361,8 +386,8 @@ def cmd_mesh(args: argparse.Namespace) -> int:
             try:
                 runner.run(image_path, out_glb, settings)
                 print(f"  [ok  ] {out_glb.name}  {out_glb.stat().st_size / 2**20:.1f} МБ")
-            except SystemExit as error:
-                print(f"  [FAIL] {image_path.name}: {error}")
+            except BaseException as error:  # noqa: BLE001 - см. выше
+                print(f"  [FAIL] {image_path.name}: {short_error(error)}")
                 failures += 1
 
     return 1 if failures else 0
