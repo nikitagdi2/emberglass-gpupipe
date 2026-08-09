@@ -18,7 +18,7 @@
   "shared": {
     "framing_vehicle": "The machine is shown alone, centred, against a completely flat featureless dark grey backdrop. There is no ground surface beneath it and it casts no shadow. It is viewed orthographically from a three-quarter angle above, as a technical study rather than a scene, with no perspective convergence.",
     "framing_infantry": "Two separate views of the same figure stand side by side with a clear gap between them, one three-quarter front view and one side view, alone against a completely flat featureless dark grey backdrop. There is no ground surface beneath them and they cast no shadow. The projection is orthographic, flat on, with no perspective convergence.",
-    "style": "The rendering is a sober, grim, utilitarian industrial design study: heavy plausible engineering, matte painted and weathered surfaces, honest mechanical construction, the sensibility of a technical reference drawing. Lighting is flat and even with a soft key from the upper left, no dramatic contrast, no rim glow, no lens effects. Emissive accents stay tiny, only a few pixels of the whole machine."
+    "style": "The rendering is a sober, grim, utilitarian industrial design study: heavy plausible engineering, matte painted and weathered surfaces, honest mechanical construction, the sensibility of a technical reference drawing. Lighting is flat and even with a soft key from the upper left, no dramatic contrast, no rim glow, no lens effects. Emissive accents stay tiny, only a few pixels of the whole subject."
   },
   "units": [
     {

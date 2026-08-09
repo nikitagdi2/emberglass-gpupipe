@@ -60,9 +60,22 @@ def compose_positive(entry: dict, data: dict) -> str:
     order = data.get("meta", {}).get("parts_order",
                                      ["subject", "hard", "framing", "style", "palette", "detail"])
 
-    framing_key = "framing_infantry" if entry.get("class") == "infantry" else "framing_vehicle"
+    # Кадрирование зависит от вида записи: пехоте нужны два вида, технике один,
+    # зданиям свой. У зданий поля class нет — они описаны футпринтом, поэтому
+    # ключ подбирается по нескольким признакам, а не по одному.
+    candidates = []
+    if entry.get("class"):
+        candidates.append(f"framing_{entry['class']}")
+    if entry.get("footprint"):
+        candidates.append("framing_building")
+    candidates += ["framing_vehicle", "framing_building"]
+
+    framing = next((shared[k] for k in candidates if shared.get(k)), "")
+    if not framing:
+        framing = next((v for k, v in shared.items() if k.startswith("framing")), "")
+
     parts = {
-        "framing": shared.get(framing_key, ""),
+        "framing": framing,
         "style": shared.get("style", ""),
     }
     for key in ("subject", "hard", "palette", "detail"):
